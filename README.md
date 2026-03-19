@@ -73,6 +73,9 @@ PORT=5000
 MONGODB_URI=mongodb://127.0.0.1:27017/quizdb
 JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
+ADMIN_NAME=Quiz Admin
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=replace_with_a_strong_admin_password
 ```
 
 ### 3. Run the Application
@@ -119,9 +122,18 @@ PORT=5000
 MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=your_long_random_jwt_secret
 CLIENT_URL=https://your-vercel-frontend.vercel.app
+ADMIN_NAME=Quiz Admin
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=replace_with_a_strong_admin_password
 ```
 
 Your public website link will be the Vercel URL.
+
+### Admin Dashboard Setup
+
+If `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set, the backend will create or promote that account to admin on startup.
+
+After the backend deploys, log in with that admin account and use `/admin/quizzes` to add quizzes from the dashboard.
 
 ## Scripts
 
