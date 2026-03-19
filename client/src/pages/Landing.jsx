@@ -2,8 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModalContext } from "../context/ModalContext";
 import { AuthContext } from "../context/AuthContext";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Landing() {
   const { openRegister } = useContext(ModalContext);
@@ -27,19 +26,19 @@ function Landing() {
   const fetchPublicData = async () => {
     try {
       // Fetch stats
-      const statsRes = await fetch(`${API_URL}/user/public-stats`);
+      const statsRes = await fetch(`${API_BASE_URL}/user/public-stats`);
       const statsData = await statsRes.json();
       if (statsData.success) {
         setStats(statsData.stats);
       }
 
       // Fetch featured quizzes (limit 3)
-      const quizzesRes = await fetch(`${API_URL}/quizzes?limit=3`);
+      const quizzesRes = await fetch(`${API_BASE_URL}/quizzes?limit=3`);
       const quizzesData = await quizzesRes.json();
       setQuizzes(quizzesData.quizzes || []);
 
       // Fetch top leaderboard (limit 5)
-      const leaderboardRes = await fetch(`${API_URL}/quizzes/leaderboard?limit=5`);
+      const leaderboardRes = await fetch(`${API_BASE_URL}/quizzes/leaderboard?limit=5`);
       const leaderboardData = await leaderboardRes.json();
       setLeaderboard(leaderboardData.leaderboard || []);
     } catch (error) {

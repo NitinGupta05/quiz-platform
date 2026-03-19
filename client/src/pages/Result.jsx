@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Result() {
   const location = useLocation();
@@ -32,7 +31,7 @@ function Result() {
   const fetchResultDetails = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/quizzes/results/${resultId}`, {
+      const res = await fetch(`${API_BASE_URL}/quizzes/results/${resultId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

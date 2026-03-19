@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { formatDateTimeDDMMYYYYHHMM } from "../utils/formatDate";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Leaderboard() {
   const { id } = useParams();
@@ -17,9 +16,9 @@ function Leaderboard() {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const endpoint = id 
-        ? `${API_URL}/quizzes/leaderboard/${id}?limit=10`
-        : `${API_URL}/quizzes/leaderboard?limit=10`;
+      const endpoint = id
+        ? `${API_BASE_URL}/quizzes/leaderboard/${id}?limit=10`
+        : `${API_BASE_URL}/quizzes/leaderboard?limit=10`;
       
       const res = await fetch(endpoint);
       const data = await res.json();

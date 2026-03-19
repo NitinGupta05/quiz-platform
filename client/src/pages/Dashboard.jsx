@@ -1,8 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Dashboard() {
   const { user } = useContext(AuthContext);
@@ -21,13 +20,13 @@ function Dashboard() {
       const token = localStorage.getItem("token");
       
       const [progressRes, historyRes, quizzesRes] = await Promise.all([
-        fetch(`${API_URL}/user/progress`, {
+        fetch(`${API_BASE_URL}/user/progress`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${API_URL}/user/history?limit=5`, {
+        fetch(`${API_BASE_URL}/user/history?limit=5`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${API_URL}/quizzes?limit=6`, {
+        fetch(`${API_BASE_URL}/quizzes?limit=6`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

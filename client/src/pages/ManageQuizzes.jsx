@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function createEmptyQuestion() {
   return {
@@ -33,7 +32,7 @@ function ManageQuizzes() {
   const fetchQuizzes = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/quizzes/admin/all`, {
+      const res = await fetch(`${API_BASE_URL}/quizzes/admin/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -63,7 +62,7 @@ function ManageQuizzes() {
     if (!confirm("Are you sure you want to delete this quiz?")) return;
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/quizzes/${id}`, {
+      await fetch(`${API_BASE_URL}/quizzes/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -155,7 +154,7 @@ function ManageQuizzes() {
     try {
       const token = localStorage.getItem("token");
       const method = editingQuiz ? "PUT" : "POST";
-      const url = editingQuiz ? `${API_URL}/quizzes/${editingQuiz._id}` : `${API_URL}/quizzes`;
+      const url = editingQuiz ? `${API_BASE_URL}/quizzes/${editingQuiz._id}` : `${API_BASE_URL}/quizzes`;
 
       await fetch(url, {
         method,

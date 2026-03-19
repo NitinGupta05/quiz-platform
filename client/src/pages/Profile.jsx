@@ -2,8 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { formatDateDDMMYYYY } from "../utils/formatDate";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Profile() {
   const { user, updateUser } = useContext(AuthContext);
@@ -56,10 +55,10 @@ function Profile() {
     try {
       const token = localStorage.getItem("token");
       const [profileRes, progressRes] = await Promise.all([
-        fetch(`${API_URL}/auth/me`, {
+        fetch(`${API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${API_URL}/user/progress`, {
+        fetch(`${API_BASE_URL}/user/progress`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -91,7 +90,7 @@ function Profile() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/auth/profile`, {
+      const res = await fetch(`${API_BASE_URL}/auth/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

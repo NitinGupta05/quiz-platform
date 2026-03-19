@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Quiz() {
   const { id } = useParams();
@@ -88,7 +87,7 @@ function Quiz() {
   const fetchQuiz = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/quizzes/${id}/exam`, {
+      const res = await fetch(`${API_BASE_URL}/quizzes/${id}/exam`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -140,7 +139,7 @@ function Quiz() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/quizzes/submit`, {
+      const res = await fetch(`${API_BASE_URL}/quizzes/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

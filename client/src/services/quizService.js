@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:5000/api/quizzes";
+import { API_BASE_URL } from "../config/api";
+
+const API_URL = `${API_BASE_URL}/quizzes`;
 
 export async function getQuizzes(query = "") {
   const res = await fetch(`${API_URL}${query ? `?${query}` : ""}`);

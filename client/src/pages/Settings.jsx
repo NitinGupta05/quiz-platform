@@ -1,7 +1,6 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Settings() {
   const { logout, user } = useContext(AuthContext);
@@ -28,7 +27,7 @@ function Settings() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/auth/password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

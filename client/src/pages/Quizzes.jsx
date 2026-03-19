@@ -1,8 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function Quizzes() {
   const { user } = useContext(AuthContext);
@@ -28,7 +27,7 @@ function Quizzes() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${API_URL}/quizzes/categories`);
+      const res = await fetch(`${API_BASE_URL}/quizzes/categories`);
       const data = await res.json();
       setCategories(data || []);
     } catch (error) {
@@ -45,7 +44,7 @@ function Quizzes() {
       if (filters.difficulty) params.append("difficulty", filters.difficulty);
       params.append("page", filters.page);
 
-      const res = await fetch(`${API_URL}/quizzes?${params}`);
+      const res = await fetch(`${API_BASE_URL}/quizzes?${params}`);
       const data = await res.json();
       setQuizzes(data.quizzes || []);
       setPagination(data.pagination || { page: 1, pages: 1, total: 0 });

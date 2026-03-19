@@ -72,6 +72,7 @@ Create `server/.env`:
 PORT=5000
 MONGODB_URI=mongodb://127.0.0.1:27017/quizdb
 JWT_SECRET=your_jwt_secret_key
+CLIENT_URL=http://localhost:5173
 ```
 
 ### 3. Run the Application
@@ -92,6 +93,35 @@ npm run dev
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:5000`
+
+## Free Deployment
+
+Use this setup for a free student-friendly deployment:
+
+- Frontend: Vercel
+- Backend: Render
+- Database: MongoDB Atlas Free
+
+### Frontend on Vercel
+
+Deploy the `client` folder and add:
+
+```env
+VITE_API_URL=https://your-render-backend.onrender.com/api
+```
+
+### Backend on Render
+
+Deploy the `server` folder and add:
+
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_long_random_jwt_secret
+CLIENT_URL=https://your-vercel-frontend.vercel.app
+```
+
+Your public website link will be the Vercel URL.
 
 ## Scripts
 
@@ -195,4 +225,3 @@ Quiz attempt protections:
 - Email: [nitinkumargupta515@gmail.com](mailto:nitinkumargupta515@gmail.com)
 - LinkedIn: [nitin-kumar-gupta-0a5567373](https://www.linkedin.com/in/nitin-kumar-gupta-0a5567373/)
 - GitHub: [NitinGupta05](https://github.com/NitinGupta05)
-

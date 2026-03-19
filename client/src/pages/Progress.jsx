@@ -3,10 +3,9 @@ import { Link } from "react-router-dom";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
 import { Doughnut, Bar } from "react-chartjs-2";
 import { formatDateTimeDDMMYYYYHHMM } from "../utils/formatDate";
+import { API_BASE_URL } from "../config/api";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
-
-const API_URL = "http://localhost:5000/api";
 
 function Progress() {
   const [stats, setStats] = useState(null);
@@ -18,10 +17,10 @@ function Progress() {
       const token = localStorage.getItem("token");
       
       const [statsRes, historyRes] = await Promise.all([
-        fetch(`${API_URL}/user/progress`, {
+        fetch(`${API_BASE_URL}/user/progress`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${API_URL}/user/history?limit=20`, {
+        fetch(`${API_BASE_URL}/user/history?limit=20`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

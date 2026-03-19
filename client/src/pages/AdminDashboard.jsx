@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -15,7 +14,7 @@ function AdminDashboard() {
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/user/admin/analytics`, {
+      const res = await fetch(`${API_BASE_URL}/user/admin/analytics`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

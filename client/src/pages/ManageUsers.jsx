@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -29,7 +28,7 @@ function ManageUsers() {
         search,
       });
 
-      const res = await fetch(`${API_URL}/user/admin/users?${query.toString()}`, {
+      const res = await fetch(`${API_BASE_URL}/user/admin/users?${query.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +49,7 @@ function ManageUsers() {
   const toggleBlock = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/auth/admin/users/${userId}/block`, {
+      const res = await fetch(`${API_BASE_URL}/auth/admin/users/${userId}/block`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

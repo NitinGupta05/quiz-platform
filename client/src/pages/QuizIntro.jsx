@@ -2,8 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { ModalContext } from "../context/ModalContext";
-
-const API_URL = "http://localhost:5000/api";
+import { API_BASE_URL } from "../config/api";
 
 function QuizIntro() {
   const { id } = useParams();
@@ -21,7 +20,7 @@ function QuizIntro() {
 
   const fetchQuiz = async () => {
     try {
-      const res = await fetch(`${API_URL}/quizzes/${id}`);
+      const res = await fetch(`${API_BASE_URL}/quizzes/${id}`);
       const data = await res.json();
 
       if (!res.ok) {
