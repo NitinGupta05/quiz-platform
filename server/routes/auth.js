@@ -240,6 +240,11 @@ router.put("/profile", auth, async (req, res) => {
 router.put("/password", auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
+    const normalizedNewPassword = normalizeText(newPassword);
+
+    if (normalizedNewPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
 
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -253,7 +258,7 @@ router.put("/password", auth, async (req, res) => {
     }
 
     // Hash new password
-    const hashed = await bcrypt.hash(newPassword, 10);
+    const hashed = await bcrypt.hash(normalizedNewPassword, 10);
     user.password = hashed;
     await user.save();
 

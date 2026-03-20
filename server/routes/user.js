@@ -157,6 +157,20 @@ router.get("/admin/analytics", auth, async (req, res) => {
       attempts: item.count,
     }));
 
+    const recentResults = await Result.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("user", "name")
+      .populate("quiz", "title");
+
+    const recentActivity = recentResults.map((result) => ({
+      user: result.user?.name || "Anonymous",
+      quiz: result.quiz?.title || "Untitled Quiz",
+      score: result.score,
+      total: result.totalQuestions,
+      date: result.createdAt,
+    }));
+
     // Build last 7-day date buckets (including today)
     const today = new Date();
     today.setHours(23, 59, 59, 999);
@@ -225,6 +239,8 @@ router.get("/admin/analytics", auth, async (req, res) => {
       totalAttempts,
       activeUsers,
       averageScore,
+      recentActivity,
+      mostAttemptedQuiz: popularQuizzes[0] || null,
       attemptsOverTime,
       popularQuizzes,
       scoreTrend,

@@ -76,7 +76,7 @@ router.get("/", async (req, res) => {
 // GET QUIZ FOR EXAM (Protected - includes questions)
 router.get("/:id/exam", auth, async (req, res) => {
   try {
-    const quiz = await Quiz.findById(req.params.id);
+    const quiz = await Quiz.findById(req.params.id).select("-questions.correctAnswer");
     if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
     }

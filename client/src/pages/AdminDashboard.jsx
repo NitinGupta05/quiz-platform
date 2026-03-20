@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 
@@ -41,31 +41,30 @@ function AdminDashboard() {
         <h1>Admin Dashboard</h1>
       </div>
 
-      {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon">Users</div>
           <div className="stat-info">
             <h3>{stats?.totalUsers || 0}</h3>
             <p>Total Users</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">📝</div>
+          <div className="stat-icon">Quiz</div>
           <div className="stat-info">
             <h3>{stats?.totalQuizzes || 0}</h3>
             <p>Active Quizzes</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">📊</div>
+          <div className="stat-icon">Stats</div>
           <div className="stat-info">
             <h3>{stats?.totalAttempts || 0}</h3>
             <p>Total Attempts</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">⭐</div>
+          <div className="stat-icon">Avg</div>
           <div className="stat-info">
             <h3>{stats?.averageScore || 0}%</h3>
             <p>Average Score</p>
@@ -73,26 +72,24 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="quick-actions">
         <Link to="/admin/quizzes" className="action-card">
-          <span className="action-icon">📝</span>
+          <span className="action-icon">Quiz</span>
           <h3>Manage Quizzes</h3>
           <p>Create, edit, and delete quizzes</p>
         </Link>
         <Link to="/admin/users" className="action-card">
-          <span className="action-icon">👥</span>
+          <span className="action-icon">Users</span>
           <h3>Manage Users</h3>
           <p>View and manage registered users</p>
         </Link>
         <Link to="/admin/analytics" className="action-card">
-          <span className="action-icon">📈</span>
+          <span className="action-icon">Data</span>
           <h3>Analytics</h3>
           <p>View detailed analytics and reports</p>
         </Link>
       </div>
 
-      {/* Recent Activity */}
       <div className="card">
         <h3>Recent Activity</h3>
         {recentActivity.length > 0 ? (
@@ -114,7 +111,6 @@ function AdminDashboard() {
         )}
       </div>
 
-      {/* Most Attempted Quiz */}
       {stats?.mostAttemptedQuiz && (
         <div className="card">
           <h3>Most Popular Quiz</h3>
@@ -129,14 +125,14 @@ function AdminDashboard() {
         .admin-dashboard { max-width: 1200px; margin: 0 auto; }
         .page-header { margin-bottom: 30px; }
         .page-header h1 { font-size: 2rem; }
-        
+
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 20px;
           margin-bottom: 30px;
         }
-        
+
         .stat-card {
           background: var(--surface);
           padding: 25px;
@@ -146,18 +142,30 @@ function AdminDashboard() {
           gap: 15px;
           box-shadow: var(--shadow-sm);
         }
-        
-        .stat-icon { font-size: 2.5rem; }
+
+        .stat-icon {
+          min-width: 56px;
+          height: 56px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          background: var(--background);
+          font-size: 0.85rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
         .stat-info h3 { font-size: 1.75rem; margin-bottom: 2px; }
         .stat-info p { color: var(--text-secondary); font-size: 0.9rem; }
-        
+
         .quick-actions {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 20px;
           margin-bottom: 30px;
         }
-        
+
         .action-card {
           background: var(--surface);
           padding: 25px;
@@ -167,16 +175,30 @@ function AdminDashboard() {
           box-shadow: var(--shadow-sm);
           transition: var(--transition);
         }
-        
+
         .action-card:hover {
           transform: translateY(-3px);
           box-shadow: var(--shadow-md);
         }
-        
-        .action-icon { font-size: 2rem; display: block; margin-bottom: 10px; }
+
+        .action-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 56px;
+          height: 32px;
+          padding: 0 12px;
+          border-radius: var(--radius-full);
+          background: var(--background);
+          margin-bottom: 10px;
+          font-size: 0.85rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
         .action-card h3 { margin-bottom: 5px; }
         .action-card p { color: var(--text-secondary); font-size: 0.9rem; }
-        
+
         .card {
           background: var(--surface);
           padding: 25px;
@@ -184,10 +206,10 @@ function AdminDashboard() {
           box-shadow: var(--shadow-sm);
           margin-bottom: 25px;
         }
-        
+
         .card h3 { margin-bottom: 20px; }
-        
         .activity-list { display: flex; flex-direction: column; gap: 12px; }
+
         .activity-item {
           display: flex;
           justify-content: space-between;
@@ -195,22 +217,16 @@ function AdminDashboard() {
           background: var(--background);
           border-radius: var(--radius-md);
         }
+
         .activity-meta { display: flex; gap: 15px; color: var(--text-secondary); font-size: 0.9rem; }
-        
         .popular-quiz { padding: 15px; background: var(--background); border-radius: var(--radius-md); }
         .popular-quiz h4 { margin-bottom: 5px; }
         .popular-quiz p { color: var(--primary); font-weight: 500; }
-        
         .text-secondary { color: var(--text-secondary); }
 
         @media (max-width: 768px) {
-          .page-header {
-            margin-bottom: 20px;
-          }
-
-          .page-header h1 {
-            font-size: 1.5rem;
-          }
+          .page-header { margin-bottom: 20px; }
+          .page-header h1 { font-size: 1.5rem; }
 
           .stats-grid,
           .quick-actions {
@@ -236,4 +252,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
-

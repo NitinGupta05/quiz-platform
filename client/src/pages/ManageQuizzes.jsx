@@ -15,6 +15,9 @@ function ManageQuizzes() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -31,14 +34,21 @@ function ManageQuizzes() {
 
   const fetchQuizzes = async () => {
     try {
+      setErrorMessage("");
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE_URL}/quizzes/admin/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to fetch quizzes");
+      }
+
       setQuizzes(data || []);
     } catch (error) {
       console.error("Failed to fetch quizzes:", error);
+      setErrorMessage(error.message || "Failed to fetch quizzes");
     } finally {
       setLoading(false);
     }
@@ -48,6 +58,8 @@ function ManageQuizzes() {
     setShowForm(false);
     setEditingQuiz(null);
     setCurrentQuestion(createEmptyQuestion());
+    setErrorMessage("");
+    setSuccessMessage("");
     setFormData({
       title: "",
       description: "",
@@ -59,16 +71,25 @@ function ManageQuizzes() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this quiz?")) return;
     try {
+      setErrorMessage("");
+      setSuccessMessage("");
       const token = localStorage.getItem("token");
-      await fetch(`${API_BASE_URL}/quizzes/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/quizzes/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete quiz");
+      }
+
+      setPendingDeleteId(null);
+      setSuccessMessage("Quiz deleted successfully.");
       fetchQuizzes();
     } catch (error) {
-      alert("Failed to delete quiz");
+      setErrorMessage(error.message || "Failed to delete quiz");
     }
   };
 
@@ -89,8 +110,9 @@ function ManageQuizzes() {
   };
 
   const addQuestion = () => {
+    setErrorMessage("");
     if (!currentQuestion.question.trim() || currentQuestion.options.some((o) => !o.trim())) {
-      alert("Please fill in all question fields.");
+      setErrorMessage("Please fill in all question fields before adding a question.");
       return;
     }
 
@@ -104,11 +126,7 @@ function ManageQuizzes() {
   const updateExistingQuestion = (questionIndex, key, value) => {
     setFormData((prev) => {
       const questions = [...prev.questions];
-      if (key === "correctAnswer") {
-        questions[questionIndex][key] = parseInt(value, 10);
-      } else {
-        questions[questionIndex][key] = value;
-      }
+      questions[questionIndex][key] = key === "correctAnswer" ? parseInt(value, 10) : value;
       return { ...prev, questions };
     });
   };
@@ -132,8 +150,11 @@ function ManageQuizzes() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+
     if (!formData.title.trim() || formData.questions.length === 0) {
-      alert("Please provide a title and at least one question.");
+      setErrorMessage("Please provide a title and at least one question.");
       return;
     }
 
@@ -147,7 +168,7 @@ function ManageQuizzes() {
     );
 
     if (hasInvalidQuestion) {
-      alert("Each question must have text, non-empty options, and a valid correct answer.");
+      setErrorMessage("Each question must have text, non-empty options, and a valid correct answer.");
       return;
     }
 
@@ -156,7 +177,7 @@ function ManageQuizzes() {
       const method = editingQuiz ? "PUT" : "POST";
       const url = editingQuiz ? `${API_BASE_URL}/quizzes/${editingQuiz._id}` : `${API_BASE_URL}/quizzes`;
 
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -172,15 +193,24 @@ function ManageQuizzes() {
         }),
       });
 
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to save quiz");
+      }
+
       resetForm();
+      setSuccessMessage(editingQuiz ? "Quiz updated successfully." : "Quiz created successfully.");
       fetchQuizzes();
     } catch (error) {
-      alert("Failed to save quiz");
+      setErrorMessage(error.message || "Failed to save quiz");
     }
   };
 
   const handleEdit = (quiz) => {
     setEditingQuiz(quiz);
+    setPendingDeleteId(null);
+    setErrorMessage("");
+    setSuccessMessage("");
     setFormData({
       title: quiz.title || "",
       description: quiz.description || "",
@@ -224,6 +254,9 @@ function ManageQuizzes() {
           </button>
         </div>
       </div>
+
+      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+      {successMessage && <div className="alert alert-success">{successMessage}</div>}
 
       {showForm && (
         <div className="card form-card">
@@ -437,9 +470,20 @@ function ManageQuizzes() {
                     <button className="btn btn-sm btn-outline" onClick={() => handleEdit(quiz)}>
                       Edit
                     </button>
-                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(quiz._id)}>
-                      Delete
-                    </button>
+                    {pendingDeleteId === quiz._id ? (
+                      <>
+                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(quiz._id)}>
+                          Confirm
+                        </button>
+                        <button className="btn btn-sm btn-outline" onClick={() => setPendingDeleteId(null)}>
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button className="btn btn-sm btn-danger" onClick={() => setPendingDeleteId(quiz._id)}>
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -457,6 +501,9 @@ function ManageQuizzes() {
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 12px; flex-wrap: wrap; }
         .header-actions { display: flex; gap: 10px; }
         .page-header h1 { font-size: 2rem; }
+        .alert { margin-bottom: 20px; padding: 12px 14px; border-radius: var(--radius-md); }
+        .alert-danger { background: #fee; color: var(--danger); border: 1px solid var(--danger); }
+        .alert-success { background: #eefbf0; color: #1f7a33; border: 1px solid #4caf50; }
         .form-card { margin-bottom: 30px; }
         .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
@@ -464,7 +511,7 @@ function ManageQuizzes() {
         .question-editor { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; background: var(--background); }
         .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .empty-questions { color: var(--text-secondary); margin-bottom: 10px; }
-        .table-actions { display: flex; gap: 8px; }
+        .table-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         hr { margin: 20px 0; border-color: var(--border); }
         h3 { margin-bottom: 12px; }
         .badge-easy { background: #4CAF50; color: white; }
@@ -473,37 +520,15 @@ function ManageQuizzes() {
         .quizzes-list { overflow: auto; }
         .table { min-width: 760px; }
         @media (max-width: 768px) {
-          .page-header h1 {
-            font-size: 1.5rem;
-          }
-
-          .header-actions {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .header-actions .btn {
-            flex: 1;
-            min-width: 140px;
-          }
-
+          .page-header h1 { font-size: 1.5rem; }
+          .header-actions { width: 100%; flex-wrap: wrap; }
+          .header-actions .btn { flex: 1; min-width: 140px; }
           .form-row { grid-template-columns: 1fr; }
           .options-grid { grid-template-columns: 1fr; }
-          .form-actions {
-            justify-content: stretch;
-            flex-direction: column;
-          }
-          .form-actions .btn {
-            width: 100%;
-          }
-          .question-header {
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-          .table-actions {
-            flex-direction: column;
-            align-items: stretch;
-          }
+          .form-actions { justify-content: stretch; flex-direction: column; }
+          .form-actions .btn { width: 100%; }
+          .question-header { flex-wrap: wrap; gap: 8px; }
+          .table-actions { flex-direction: column; align-items: stretch; }
         }
       `}</style>
     </div>

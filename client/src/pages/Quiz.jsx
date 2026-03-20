@@ -12,19 +12,18 @@ function Quiz() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [isTabSwitched, setIsTabSwitched] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
   const tabSwitchCountRef = useRef(0);
 
-  // Fetch quiz
   useEffect(() => {
     fetchQuiz();
   }, [id]);
 
-  // Timer
   useEffect(() => {
     if (!quiz || timeLeft <= 0) return;
 
@@ -42,18 +41,12 @@ function Quiz() {
     return () => clearInterval(timerRef.current);
   }, [quiz, timeLeft]);
 
-  // Tab switch detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         tabSwitchCountRef.current += 1;
-        setIsTabSwitched(true);
         setShowWarning(true);
-        
-        // Hide warning after 3 seconds
-        setTimeout(() => {
-          setShowWarning(false);
-        }, 3000);
+        setTimeout(() => setShowWarning(false), 3000);
       }
     };
 
@@ -71,7 +64,6 @@ function Quiz() {
     };
   }, []);
 
-  // Prevent back navigation
   useEffect(() => {
     const preventBack = (e) => {
       e.preventDefault();
@@ -86,18 +78,16 @@ function Quiz() {
 
   const fetchQuiz = async () => {
     try {
+      setLoadError("");
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE_URL}/quizzes/${id}/exam`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to load quiz");
-        navigate("/quizzes");
+        setLoadError(data.message || "Failed to load quiz");
         return;
       }
 
@@ -107,17 +97,16 @@ function Quiz() {
       startTimeRef.current = Date.now();
     } catch (error) {
       console.error("Failed to fetch quiz:", error);
-      alert("Failed to load quiz");
-      navigate("/quizzes");
+      setLoadError("Failed to load quiz");
     } finally {
       setLoading(false);
     }
   };
 
   const handleAnswerSelect = (answerIndex) => {
-    const newAnswers = [...answers];
-    newAnswers[currentQuestion] = answerIndex;
-    setAnswers(newAnswers);
+    const nextAnswers = [...answers];
+    nextAnswers[currentQuestion] = answerIndex;
+    setAnswers(nextAnswers);
   };
 
   const handleNext = () => {
@@ -126,13 +115,11 @@ function Quiz() {
     }
   };
 
-  // REMOVED: handlePrevious - Users cannot go back to previous questions
-  // This is intentional to prevent users from changing answers
-
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
-    
+
     setSubmitting(true);
+    setSubmitError("");
     clearInterval(timerRef.current);
 
     const timeTaken = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -155,38 +142,34 @@ function Quiz() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        localStorage.setItem("lastQuizSubmissionAt", new Date().toISOString());
-        window.dispatchEvent(
-          new CustomEvent("quiz-submitted", {
-            detail: {
-              quizId: id,
-              resultId: data.result._id,
-            },
-          })
-        );
-
-        navigate(`/result/${data.result._id}`, {
-          state: {
-            quizId: id,
-            resultId: data.result._id,
-            score: data.result.score,
-            total: data.result.totalQuestions,
-            correct: data.result.correctAnswers,
-            wrong: data.result.wrongAnswers,
-            accuracy: data.result.accuracy,
-            timeTaken: data.result.timeTaken,
-            isTabSwitched: tabSwitchCountRef.current > 0,
-          },
-        });
-      } else {
-        alert(data.message || "Failed to submit quiz");
-        navigate("/quizzes");
+      if (!res.ok) {
+        setSubmitError(data.message || "Failed to submit quiz");
+        return;
       }
+
+      localStorage.setItem("lastQuizSubmissionAt", new Date().toISOString());
+      window.dispatchEvent(
+        new CustomEvent("quiz-submitted", {
+          detail: { quizId: id, resultId: data.result._id },
+        })
+      );
+
+      navigate(`/result/${data.result._id}`, {
+        state: {
+          quizId: id,
+          resultId: data.result._id,
+          score: data.result.score,
+          total: data.result.totalQuestions,
+          correct: data.result.correctAnswers,
+          wrong: data.result.wrongAnswers,
+          accuracy: data.result.accuracy,
+          timeTaken: data.result.timeTaken,
+          isTabSwitched: tabSwitchCountRef.current > 0,
+        },
+      });
     } catch (error) {
       console.error("Failed to submit quiz:", error);
-      alert("Failed to submit quiz. Please try again.");
-      navigate("/quizzes");
+      setSubmitError("Failed to submit quiz. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -201,39 +184,57 @@ function Quiz() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="quiz-page loading-screen">
+        <div className="error-card">
+          <h2>Quiz Unavailable</h2>
+          <p>{loadError}</p>
+          <button className="btn btn-primary" onClick={() => navigate("/quizzes")}>
+            Back to Quizzes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!quiz || !quiz.questions) {
     return (
-      <div className="quiz-page">
-        <p>Quiz not found</p>
+      <div className="quiz-page loading-screen">
+        <div className="error-card">
+          <h2>Quiz Not Found</h2>
+          <button className="btn btn-primary" onClick={() => navigate("/quizzes")}>
+            Back to Quizzes
+          </button>
+        </div>
       </div>
     );
   }
 
   const question = quiz.questions[currentQuestion];
   const totalQuestions = quiz.questions.length;
-  const answeredCount = answers.filter((a) => a !== null).length;
+  const answeredCount = answers.filter((answer) => answer !== null).length;
 
   return (
     <div className="quiz-page">
-      {/* Tab Switch Warning */}
       {showWarning && (
         <div className="tab-warning">
-          ⚠️ Warning: You switched tabs during the quiz! This has been recorded.
+          Warning: You switched tabs during the quiz. This has been recorded.
         </div>
       )}
 
-      {/* Quiz Header */}
       <div className="quiz-header">
         <div className="quiz-title">{quiz.title}</div>
         <div className="quiz-timer">
-          <span className="timer-icon"></span>
-          ⏱<span className={`timer-value ${timeLeft < 30 ? "warning" : ""}`}>
+          <span className="timer-label">Time left</span>
+          <span className={`timer-value ${timeLeft < 30 ? "warning" : ""}`}>
             {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
           </span>
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {submitError && <div className="submit-error">{submitError}</div>}
+
       <div className="progress-bar">
         <div
           className="progress-fill"
@@ -241,15 +242,12 @@ function Quiz() {
         ></div>
       </div>
 
-      {/* Question */}
       <div className="question-container">
         <div className="question-header">
           <span className="question-number">
             Question {currentQuestion + 1} of {totalQuestions}
           </span>
-          <span className="answered-count">
-            {answeredCount} answered
-          </span>
+          <span className="answered-count">{answeredCount} answered</span>
         </div>
 
         <h2 className="question-text">{question.question}</h2>
@@ -261,19 +259,14 @@ function Quiz() {
               className={`option-btn ${answers[currentQuestion] === index ? "selected" : ""}`}
               onClick={() => handleAnswerSelect(index)}
             >
-              <span className="option-letter">
-                {String.fromCharCode(65 + index)}
-              </span>
+              <span className="option-letter">{String.fromCharCode(65 + index)}</span>
               <span className="option-text">{option}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Navigation */}
       <div className="quiz-navigation">
-        {/* Previous button removed - users cannot go back to previous questions */}
-
         <div className="question-dots">
           {quiz.questions.map((_, index) => (
             <button
@@ -282,7 +275,6 @@ function Quiz() {
                 answers[index] !== null ? "answered" : ""
               } ${index < currentQuestion ? "completed" : ""}`}
               onClick={() => {
-                // Only allow going to current or future questions (not previous)
                 if (index >= currentQuestion) {
                   setCurrentQuestion(index);
                 }
@@ -295,11 +287,7 @@ function Quiz() {
         </div>
 
         {currentQuestion === totalQuestions - 1 ? (
-          <button
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
             {submitting ? "Submitting..." : "Submit Quiz"}
           </button>
         ) : (
@@ -322,6 +310,15 @@ function Quiz() {
           align-items: center;
           justify-content: center;
           gap: 15px;
+        }
+
+        .error-card {
+          max-width: 420px;
+          padding: 24px;
+          border-radius: var(--radius-lg);
+          background: var(--surface);
+          box-shadow: var(--shadow-md);
+          text-align: center;
         }
 
         .tab-warning {
@@ -359,14 +356,29 @@ function Quiz() {
           display: flex;
           align-items: center;
           gap: 8px;
-          font-size: 1.5rem;
+          font-size: 1rem;
           font-weight: 600;
           color: var(--text);
+        }
+
+        .timer-label {
+          font-size: 0.9rem;
+          color: var(--text-secondary);
         }
 
         .timer-value.warning {
           color: var(--danger);
           animation: pulse 1s infinite;
+        }
+
+        .submit-error {
+          max-width: 800px;
+          margin: 16px auto 0;
+          padding: 12px 16px;
+          border: 1px solid var(--danger);
+          border-radius: var(--radius-md);
+          background: #fee;
+          color: var(--danger);
         }
 
         @keyframes pulse {
@@ -512,6 +524,8 @@ function Quiz() {
         @media (max-width: 768px) {
           .quiz-header {
             padding: 15px;
+            gap: 12px;
+            flex-wrap: wrap;
           }
 
           .question-dots {
@@ -528,4 +542,3 @@ function Quiz() {
 }
 
 export default Quiz;
-

@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 
 function Result() {
   const location = useLocation();
-  const navigate = useNavigate();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +11,6 @@ function Result() {
     quizId,
     resultId,
     score,
-    total,
     correct,
     wrong,
     accuracy,
@@ -32,9 +30,7 @@ function Result() {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE_URL}/quizzes/results/${resultId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (res.ok) {
@@ -77,15 +73,14 @@ function Result() {
     <div className="result-page">
       <div className="result-card">
         <div className="result-header">
-          <h1>Quiz Complete! 🎉</h1>
+          <h1>Quiz Complete</h1>
           {isTabSwitched && (
             <div className="tab-switch-warning">
-              ⚠️ Tab switch detected during quiz
+              Tab switch detected during quiz
             </div>
           )}
         </div>
 
-        {/* Score Circle */}
         <div className="score-circle" style={{ borderColor: getScoreColor() }}>
           <div className="score-value" style={{ color: getScoreColor() }}>
             {accuracy}%
@@ -93,31 +88,29 @@ function Result() {
           <div className="score-label">Accuracy</div>
         </div>
 
-        {/* Stats Grid */}
         <div className="stats-grid">
           <div className="stat-item">
-            <span className="stat-icon">🎯</span>
+            <span className="stat-icon">Score</span>
             <span className="stat-value">{score}</span>
             <span className="stat-label">Score</span>
           </div>
           <div className="stat-item">
-            <span className="stat-icon">✅</span>
+            <span className="stat-icon">Right</span>
             <span className="stat-value correct">{correct}</span>
             <span className="stat-label">Correct</span>
           </div>
           <div className="stat-item">
-            <span className="stat-icon">❌</span>
+            <span className="stat-icon">Wrong</span>
             <span className="stat-value wrong">{wrong}</span>
             <span className="stat-label">Wrong</span>
           </div>
           <div className="stat-item">
-            <span className="stat-icon">⏱️</span>
+            <span className="stat-icon">Time</span>
             <span className="stat-value">{formatTime(timeTaken)}</span>
             <span className="stat-label">Time Taken</span>
           </div>
         </div>
 
-        {/* Actions */}
         <div className="result-actions">
           <Link to="/dashboard" className="btn btn-outline">
             Back to Dashboard
@@ -136,35 +129,39 @@ function Result() {
         </div>
       </div>
 
-      {/* Question Review */}
       {result && result.questions && (
         <div className="review-section">
           <h2>Question Review</h2>
-          {result.questions.map((q, index) => (
-            <div key={index} className={`review-item ${q.isCorrect ? "correct" : "wrong"}`}>
+          {result.questions.map((question, index) => (
+            <div
+              key={index}
+              className={`review-item ${question.isCorrect ? "correct" : "wrong"}`}
+            >
               <div className="review-header">
                 <span className="question-num">Q{index + 1}</span>
-                <span className={`status ${q.isCorrect ? "correct" : "wrong"}`}>
-                  {q.isCorrect ? "✓ Correct" : "✗ Wrong"}
+                <span className={`status ${question.isCorrect ? "correct" : "wrong"}`}>
+                  {question.isCorrect ? "Correct" : "Wrong"}
                 </span>
               </div>
-              <p className="question-text">{q.question}</p>
+              <p className="question-text">{question.question}</p>
               <div className="options-review">
-                {q.options.map((opt, i) => (
+                {question.options.map((option, optionIndex) => (
                   <div
-                    key={i}
+                    key={optionIndex}
                     className={`option ${
-                      i === q.correctAnswer
+                      optionIndex === question.correctAnswer
                         ? "correct-answer"
-                        : i === q.selectedAnswer && !q.isCorrect
-                        ? "wrong-answer"
-                        : ""
+                        : optionIndex === question.selectedAnswer && !question.isCorrect
+                          ? "wrong-answer"
+                          : ""
                     }`}
                   >
-                    <span className="option-letter">{String.fromCharCode(65 + i)}</span>
-                    <span className="option-text">{opt}</span>
-                    {i === q.correctAnswer && <span className="badge badge-success">Correct</span>}
-                    {i === q.selectedAnswer && !q.isCorrect && (
+                    <span className="option-letter">{String.fromCharCode(65 + optionIndex)}</span>
+                    <span className="option-text">{option}</span>
+                    {optionIndex === question.correctAnswer && (
+                      <span className="badge badge-success">Correct</span>
+                    )}
+                    {optionIndex === question.selectedAnswer && !question.isCorrect && (
                       <span className="badge badge-danger">Your Answer</span>
                     )}
                   </div>
@@ -246,8 +243,18 @@ function Result() {
         }
 
         .stat-icon {
-          font-size: 1.5rem;
+          min-width: 56px;
+          height: 32px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           margin-bottom: 8px;
+          padding: 0 12px;
+          border-radius: var(--radius-full);
+          background: var(--surface);
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
         .stat-value {
@@ -380,4 +387,3 @@ function Result() {
 }
 
 export default Result;
-
