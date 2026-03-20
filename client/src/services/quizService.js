@@ -1,13 +1,9 @@
-import { API_BASE_URL } from "../config/api";
+import { apiRequest } from "./apiClient";
 
-const API_URL = `${API_BASE_URL}/quizzes`;
-
-export async function getQuizzes(query = "") {
-  const res = await fetch(`${API_URL}${query ? `?${query}` : ""}`);
-  return res.json();
+export function getQuizzes(query = "") {
+  return apiRequest(`/quizzes${query ? `?${query}` : ""}`);
 }
 
-export async function getQuizById(id) {
-  const res = await fetch(`${API_URL}/${id}`);
-  return res.json();
+export function getQuizById(id) {
+  return apiRequest(`/quizzes/${id}`);
 }

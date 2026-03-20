@@ -1,13 +1,22 @@
 import { createContext, useEffect, useState } from "react";
-import { API_BASE_URL } from "../config/api";
+import {
+  adminLogin as adminLoginRequest,
+  login as loginRequest,
+  register as registerRequest,
+} from "../services/authService";
 
 export const AuthContext = createContext();
+
+function persistSession(data, setUser) {
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data.user));
+  setUser(data.user);
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
@@ -15,7 +24,7 @@ export function AuthProvider({ children }) {
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
-      } catch (e) {
+      } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
@@ -26,73 +35,31 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return { success: false, message: data.message };
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
-
+      const data = await loginRequest({ email, password });
+      persistSession(data, setUser);
       return { success: true };
     } catch (error) {
-      return { success: false, message: "Network error" };
+      return { success: false, message: error.message || "Network error" };
     }
   };
 
   const adminLogin = async (email, password) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/admin/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return { success: false, message: data.message };
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
-
+      const data = await adminLoginRequest({ email, password });
+      persistSession(data, setUser);
       return { success: true };
     } catch (error) {
-      return { success: false, message: "Network error" };
+      return { success: false, message: error.message || "Network error" };
     }
   };
 
   const register = async (name, email, password) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return { success: false, message: data.message };
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
-
+      const data = await registerRequest({ name, email, password });
+      persistSession(data, setUser);
       return { success: true };
     } catch (error) {
-      return { success: false, message: "Network error" };
+      return { success: false, message: error.message || "Network error" };
     }
   };
 
@@ -124,4 +91,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-

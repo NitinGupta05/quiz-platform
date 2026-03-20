@@ -1,8 +1,13 @@
-import { API_BASE_URL } from "../config/api";
+import { apiRequest } from "./apiClient";
 
-const API_URL = `${API_BASE_URL}/user`;
+export function getPublicStats() {
+  return apiRequest("/user/public-stats");
+}
 
-export async function getPublicStats() {
-  const res = await fetch(`${API_URL}/public-stats`);
-  return res.json();
+export function getProgress() {
+  return apiRequest("/user/progress", { authenticated: true });
+}
+
+export function getHistory(limit = 20) {
+  return apiRequest(`/user/history?limit=${limit}`, { authenticated: true });
 }

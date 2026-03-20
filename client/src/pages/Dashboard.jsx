@@ -1,7 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { API_BASE_URL } from "../config/api";
+import { getQuizzes } from "../services/quizService";
+import { getHistory, getProgress } from "../services/userService";
 
 function Dashboard() {
   const { user } = useContext(AuthContext);
@@ -12,41 +13,28 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const [progressData, historyData, quizzesData] = await Promise.all([
+          getProgress(),
+          getHistory(5),
+          getQuizzes("limit=6"),
+        ]);
+
+        setStats(progressData);
+        setRecentAttempts(historyData.history || []);
+        setRecentQuizzes(quizzesData.quizzes || []);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      
-      const [progressRes, historyRes, quizzesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/user/progress`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE_URL}/user/history?limit=5`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE_URL}/quizzes?limit=6`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const progressData = await progressRes.json();
-      const historyData = await historyRes.json();
-      const quizzesData = await quizzesRes.json();
-
-      setStats(progressData);
-      setRecentAttempts(historyData.history || []);
-      setRecentQuizzes(quizzesData.quizzes || []);
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleStartQuiz = (quizId) => {
-    // Force intro-first flow: /quiz/:id -> /quiz/:id/start
     navigate(`/quiz/${quizId}`);
   };
 
@@ -61,43 +49,27 @@ function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="page-header">
-        <h1>Welcome back, {user?.name}! 👋</h1>
-        <p>Here's your quiz activity overview</p>
+        <h1>Welcome back, {user?.name}!</h1>
+        <p>Here is your quiz activity overview.</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-icon">📝</span>
-          <div className="stat-info">
-            <h3>{stats?.totalQuizzesTaken || 0}</h3>
-            <p>Quizzes Taken</p>
+        {[
+          { label: "Taken", value: stats?.totalQuizzesTaken || 0, hint: "Quizzes completed" },
+          { label: "Accuracy", value: `${stats?.overallAccuracy || 0}%`, hint: "Overall performance" },
+          { label: "Average", value: `${stats?.averageScore || 0}%`, hint: "Average score" },
+          { label: "Best", value: `${stats?.bestScore || 0}%`, hint: "Best score" },
+        ].map((item) => (
+          <div key={item.label} className="stat-card">
+            <span className="stat-icon">{item.label}</span>
+            <div className="stat-info">
+              <h3>{item.value}</h3>
+              <p>{item.hint}</p>
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">🎯</span>
-          <div className="stat-info">
-            <h3>{stats?.overallAccuracy || 0}%</h3>
-            <p>Overall Accuracy</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">⭐</span>
-          <div className="stat-info">
-            <h3>{stats?.averageScore || 0}%</h3>
-            <p>Average Score</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">🏆</span>
-          <div className="stat-info">
-            <h3>{stats?.bestScore || 0}%</h3>
-            <p>Best Score</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Recent Attempts */}
       <div className="card">
         <div className="card-header">
           <h3>Recent Attempts</h3>
@@ -127,7 +99,6 @@ function Dashboard() {
         )}
       </div>
 
-      {/* Available Quizzes */}
       <div className="section">
         <div className="section-header">
           <h3>Available Quizzes</h3>
@@ -158,14 +129,13 @@ function Dashboard() {
         .dashboard-page { max-width: 1200px; margin: 0 auto; }
         .page-header { margin-bottom: 30px; }
         .page-header h1 { font-size: 2rem; margin-bottom: 5px; }
-        
+        .page-header p { color: var(--text-secondary); }
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 20px;
           margin-bottom: 30px;
         }
-        
         .stat-card {
           background: var(--surface);
           padding: 25px;
@@ -175,11 +145,21 @@ function Dashboard() {
           gap: 15px;
           box-shadow: var(--shadow-sm);
         }
-        
-        .stat-icon { font-size: 2.5rem; }
+        .stat-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 62px;
+          height: 36px;
+          padding: 0 12px;
+          border-radius: 999px;
+          background: var(--background);
+          font-size: 0.82rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
         .stat-info h3 { font-size: 1.75rem; margin-bottom: 2px; }
         .stat-info p { color: var(--text-secondary); font-size: 0.9rem; }
-        
         .card {
           background: var(--surface);
           padding: 25px;
@@ -187,19 +167,13 @@ function Dashboard() {
           box-shadow: var(--shadow-sm);
           margin-bottom: 30px;
         }
-        
         .card-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
         }
-        
-        .view-all {
-          font-size: 0.9rem;
-          font-weight: 500;
-        }
-        
+        .view-all { font-size: 0.9rem; font-weight: 500; }
         .attempts-list { display: flex; flex-direction: column; gap: 12px; }
         .attempt-item {
           display: flex;
@@ -209,14 +183,11 @@ function Dashboard() {
           background: var(--background);
           border-radius: var(--radius-md);
         }
-        
         .attempt-info h4 { font-size: 1rem; margin-bottom: 3px; }
         .attempt-info p { font-size: 0.85rem; color: var(--text-secondary); }
-        
         .score { font-weight: 600; font-size: 1.1rem; }
         .score.good { color: var(--success); }
         .score.bad { color: var(--danger); }
-        
         .section { margin-bottom: 30px; }
         .section-header {
           display: flex;
@@ -224,30 +195,25 @@ function Dashboard() {
           align-items: center;
           margin-bottom: 20px;
         }
-        
         .quizzes-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 20px;
         }
-        
         .quiz-card {
           background: var(--surface);
           padding: 20px;
           border-radius: var(--radius-lg);
           box-shadow: var(--shadow-sm);
         }
-        
         .quiz-card-header {
           display: flex;
           justify-content: space-between;
           margin-bottom: 12px;
         }
-        
         .badge-easy { background: #4CAF50; color: white; }
         .badge-medium { background: #FF9800; color: white; }
         .badge-hard { background: #f44336; color: white; }
-        
         .quiz-time { color: var(--text-secondary); font-size: 0.9rem; }
         .quiz-card h4 { margin-bottom: 8px; }
         .quiz-card p { font-size: 0.9rem; margin-bottom: 15px; }
@@ -263,54 +229,23 @@ function Dashboard() {
           color: #ffffff;
           opacity: 1;
         }
-
         @media (max-width: 1024px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .quizzes-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
+          .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .quizzes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-
         @media (max-width: 768px) {
-          .dashboard-page {
-            max-width: 100%;
-          }
-
-          .page-header {
-            margin-bottom: 20px;
-          }
-
-          .page-header h1 {
-            font-size: 1.5rem;
-            line-height: 1.3;
-          }
-
+          .dashboard-page { max-width: 100%; }
+          .page-header { margin-bottom: 20px; }
+          .page-header h1 { font-size: 1.5rem; line-height: 1.3; }
           .stats-grid,
-          .quizzes-grid {
-            grid-template-columns: 1fr;
-            gap: 14px;
-          }
-
+          .quizzes-grid { grid-template-columns: 1fr; gap: 14px; }
           .stat-card,
           .card,
-          .quiz-card {
-            padding: 16px;
-          }
-
+          .quiz-card { padding: 16px; }
           .card-header,
           .section-header,
-          .attempt-item {
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-
-          .quiz-meta {
-            flex-wrap: wrap;
-            gap: 8px;
-          }
+          .attempt-item { flex-wrap: wrap; gap: 8px; }
+          .quiz-meta { flex-wrap: wrap; gap: 8px; }
         }
       `}</style>
     </div>
@@ -318,4 +253,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

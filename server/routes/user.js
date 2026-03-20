@@ -13,6 +13,28 @@ function formatDayLabel(date) {
   return `${day}/${month}`;
 }
 
+function startOfDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfDay(date) {
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+function getDateBuckets(days = 7) {
+  const today = endOfDay(new Date());
+  return Array.from({ length: days }, (_, index) => {
+    const bucketDate = new Date(today);
+    bucketDate.setDate(today.getDate() - (days - 1 - index));
+    bucketDate.setHours(0, 0, 0, 0);
+    return bucketDate;
+  });
+}
+
 // PUBLIC: GET PLATFORM STATS
 router.get("/public-stats", async (req, res) => {
   try {
@@ -120,131 +142,320 @@ router.get("/admin/analytics", auth, async (req, res) => {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    const totalUsers = await User.countDocuments();
-    const totalQuizzes = await Quiz.countDocuments();
-    const totalAttempts = await Result.countDocuments();
+    const dateBuckets = getDateBuckets(7);
+    const firstBucketDate = startOfDay(dateBuckets[0]);
+    const lastBucketDate = endOfDay(dateBuckets[dateBuckets.length - 1]);
 
-    // Calculate average score across all attempts
-    const avgScoreResult = await Result.aggregate([
-      { $group: { _id: null, avgAccuracy: { $avg: "$accuracy" } } }
+    const [
+      totalUsers,
+      totalQuizzes,
+      totalAttempts,
+      averageStatsResult,
+      activeUsersAgg,
+      recentResults,
+      popularQuizAgg,
+      quizPerformanceAgg,
+      categoryPerformanceAgg,
+      riskyAttemptAgg,
+      userGrowthAgg,
+      attemptsTrendAgg,
+    ] = await Promise.all([
+      User.countDocuments(),
+      Quiz.countDocuments(),
+      Quiz.countDocuments({ isActive: true }),
+      Result.aggregate([
+        {
+          $group: {
+            _id: null,
+            avgAccuracy: { $avg: "$accuracy" },
+            avgTimeTaken: { $avg: "$timeTaken" },
+            flaggedAttempts: {
+              $sum: { $cond: [{ $eq: ["$isTabSwitched", true] }, 1, 0] },
+            },
+          },
+        },
+      ]),
+      Result.aggregate([{ $group: { _id: "$user" } }, { $count: "total" }]),
+      Result.find()
+        .sort({ createdAt: -1 })
+        .limit(8)
+        .populate("user", "name")
+        .populate("quiz", "title category difficulty"),
+      Result.aggregate([
+        { $group: { _id: "$quiz", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 6 },
+      ]),
+      Result.aggregate([
+        {
+          $group: {
+            _id: "$quiz",
+            attempts: { $sum: 1 },
+            averageScore: { $avg: "$accuracy" },
+            averageTimeTaken: { $avg: "$timeTaken" },
+            flaggedAttempts: {
+              $sum: { $cond: [{ $eq: ["$isTabSwitched", true] }, 1, 0] },
+            },
+            lastAttemptAt: { $max: "$createdAt" },
+          },
+        },
+        { $match: { _id: { $ne: null } } },
+        {
+          $lookup: {
+            from: "quizzes",
+            localField: "_id",
+            foreignField: "_id",
+            as: "quiz",
+          },
+        },
+        { $unwind: "$quiz" },
+      ]),
+      Result.aggregate([
+        {
+          $lookup: {
+            from: "quizzes",
+            localField: "quiz",
+            foreignField: "_id",
+            as: "quiz",
+          },
+        },
+        { $unwind: "$quiz" },
+        {
+          $group: {
+            _id: "$quiz.category",
+            attempts: { $sum: 1 },
+            averageScore: { $avg: "$accuracy" },
+            averageTimeTaken: { $avg: "$timeTaken" },
+          },
+        },
+        { $sort: { attempts: -1 } },
+      ]),
+      Result.aggregate([
+        { $match: { isTabSwitched: true } },
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        {
+          $lookup: {
+            from: "quizzes",
+            localField: "quiz",
+            foreignField: "_id",
+            as: "quiz",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            createdAt: 1,
+            accuracy: 1,
+            score: 1,
+            totalQuestions: 1,
+            user: { $arrayElemAt: ["$user.name", 0] },
+            quiz: { $arrayElemAt: ["$quiz.title", 0] },
+          },
+        },
+      ]),
+      User.aggregate([
+        { $match: { createdAt: { $gte: firstBucketDate, $lte: lastBucketDate } } },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+              day: { $dayOfMonth: "$createdAt" },
+            },
+            users: { $sum: 1 },
+          },
+        },
+      ]),
+      Result.aggregate([
+        { $match: { createdAt: { $gte: firstBucketDate, $lte: lastBucketDate } } },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+              day: { $dayOfMonth: "$createdAt" },
+            },
+            attempts: { $sum: 1 },
+            averageScore: { $avg: "$accuracy" },
+            activeUsers: { $addToSet: "$user" },
+            flaggedAttempts: {
+              $sum: { $cond: [{ $eq: ["$isTabSwitched", true] }, 1, 0] },
+            },
+          },
+        },
+      ]),
     ]);
-    const averageScore = avgScoreResult[0]?.avgAccuracy 
-      ? Math.round(avgScoreResult[0].avgAccuracy) 
+
+    const averageScore = averageStatsResult[0]?.avgAccuracy
+      ? Math.round(averageStatsResult[0].avgAccuracy)
       : 0;
-
-    // Active users: users who attempted at least one quiz
-    const activeUsersAgg = await Result.aggregate([
-      { $group: { _id: "$user" } },
-      { $count: "total" },
-    ]);
+    const averageTimeTaken = averageStatsResult[0]?.avgTimeTaken
+      ? Math.round(averageStatsResult[0].avgTimeTaken)
+      : 0;
+    const flaggedAttempts = averageStatsResult[0]?.flaggedAttempts || 0;
     const activeUsers = activeUsersAgg[0]?.total || 0;
+    const engagementRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0;
+    const tabSwitchRate = totalAttempts > 0 ? Math.round((flaggedAttempts / totalAttempts) * 100) : 0;
+    const averageAttemptsPerUser = activeUsers > 0 ? Number((totalAttempts / activeUsers).toFixed(1)) : 0;
 
-    // Most popular quizzes
-    const popularQuizAgg = await Result.aggregate([
-      { $group: { _id: "$quiz", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 },
-    ]);
-    const popularQuizIds = popularQuizAgg.map((item) => item._id).filter(Boolean);
-    const popularQuizDocs = await Quiz.find({ _id: { $in: popularQuizIds } }).select("title");
-    const quizTitleMap = popularQuizDocs.reduce((acc, quiz) => {
-      acc[String(quiz._id)] = quiz.title;
-      return acc;
-    }, {});
+    const quizTitleMap = new Map(
+      quizPerformanceAgg.map((item) => [
+        String(item._id),
+        {
+          title: item.quiz?.title || "Untitled Quiz",
+          category: item.quiz?.category || "General",
+          difficulty: item.quiz?.difficulty || "medium",
+          isActive: item.quiz?.isActive ?? true,
+        },
+      ])
+    );
+
     const popularQuizzes = popularQuizAgg.map((item) => ({
       quizId: item._id,
-      title: quizTitleMap[String(item._id)] || "Untitled Quiz",
+      title: quizTitleMap.get(String(item._id))?.title || "Untitled Quiz",
       attempts: item.count,
     }));
-
-    const recentResults = await Result.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .populate("user", "name")
-      .populate("quiz", "title");
 
     const recentActivity = recentResults.map((result) => ({
       user: result.user?.name || "Anonymous",
       quiz: result.quiz?.title || "Untitled Quiz",
+      category: result.quiz?.category || "General",
+      difficulty: result.quiz?.difficulty || "medium",
       score: result.score,
       total: result.totalQuestions,
+      accuracy: result.accuracy,
       date: result.createdAt,
+      isTabSwitched: result.isTabSwitched,
     }));
 
-    // Build last 7-day date buckets (including today)
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const dateBuckets = [];
-    for (let i = 6; i >= 0; i--) {
-      const bucketDate = new Date(today);
-      bucketDate.setDate(today.getDate() - i);
-      bucketDate.setHours(0, 0, 0, 0);
-      dateBuckets.push(bucketDate);
-    }
-
-    const attemptsOverTime = await Promise.all(
-      dateBuckets.map(async (startDate) => {
-        const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 1);
-
-        const dailyAttempts = await Result.countDocuments({
-          createdAt: { $gte: startDate, $lt: endDate },
-        });
+    const performanceByQuiz = quizPerformanceAgg
+      .map((item) => {
+        const meta = quizTitleMap.get(String(item._id)) || {};
+        const riskRate = item.attempts > 0
+          ? Math.round((item.flaggedAttempts / item.attempts) * 100)
+          : 0;
 
         return {
-          date: formatDayLabel(startDate),
-          attempts: dailyAttempts,
+          quizId: item._id,
+          title: meta.title || "Untitled Quiz",
+          category: meta.category || "General",
+          difficulty: meta.difficulty || "medium",
+          isActive: meta.isActive ?? true,
+          attempts: item.attempts,
+          averageScore: Math.round(item.averageScore || 0),
+          averageTimeTaken: Math.round(item.averageTimeTaken || 0),
+          riskRate,
+          lastAttemptAt: item.lastAttemptAt,
         };
       })
+      .sort((a, b) => b.attempts - a.attempts);
+
+    const hardestQuizzes = [...performanceByQuiz]
+      .filter((item) => item.attempts >= 2)
+      .sort((a, b) => a.averageScore - b.averageScore || b.attempts - a.attempts)
+      .slice(0, 5);
+
+    const easiestQuizzes = [...performanceByQuiz]
+      .filter((item) => item.attempts >= 2)
+      .sort((a, b) => b.averageScore - a.averageScore || b.attempts - a.attempts)
+      .slice(0, 5);
+
+    const quizHealth = performanceByQuiz.slice(0, 6);
+
+    const categoryPerformance = categoryPerformanceAgg.map((item) => ({
+      category: item._id || "General",
+      attempts: item.attempts,
+      averageScore: Math.round(item.averageScore || 0),
+      averageTimeTaken: Math.round(item.averageTimeTaken || 0),
+    }));
+
+    const trendMap = new Map(
+      attemptsTrendAgg.map((item) => [
+        `${item._id.year}-${item._id.month}-${item._id.day}`,
+        item,
+      ])
     );
 
-    const scoreTrend = await Promise.all(
-      dateBuckets.map(async (startDate) => {
-        const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 1);
-
-        const dailyAverage = await Result.aggregate([
-          { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
-          { $group: { _id: null, avgAccuracy: { $avg: "$accuracy" } } },
-        ]);
-
-        return {
-          date: formatDayLabel(startDate),
-          averageScore: dailyAverage[0]?.avgAccuracy ? Math.round(dailyAverage[0].avgAccuracy) : 0,
-        };
-      })
+    const signupMap = new Map(
+      userGrowthAgg.map((item) => [
+        `${item._id.year}-${item._id.month}-${item._id.day}`,
+        item.users,
+      ])
     );
 
-    const userActivityTrends = await Promise.all(
-      dateBuckets.map(async (startDate) => {
-        const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 1);
+    const attemptsOverTime = dateBuckets.map((startDate) => {
+      const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+      const dayData = trendMap.get(key);
 
-        const activeUsersForDay = await Result.aggregate([
-          { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
-          { $group: { _id: "$user" } },
-          { $count: "total" },
-        ]);
+      return {
+        date: formatDayLabel(startDate),
+        attempts: dayData?.attempts || 0,
+        averageScore: dayData?.averageScore ? Math.round(dayData.averageScore) : 0,
+        activeUsers: dayData?.activeUsers?.length || 0,
+        flaggedAttempts: dayData?.flaggedAttempts || 0,
+      };
+    });
 
-        return {
-          date: formatDayLabel(startDate),
-          activeUsers: activeUsersForDay[0]?.total || 0,
-        };
-      })
-    );
+    const scoreTrend = attemptsOverTime.map((item) => ({
+      date: item.date,
+      averageScore: item.averageScore,
+    }));
+
+    const userActivityTrends = attemptsOverTime.map((item) => ({
+      date: item.date,
+      activeUsers: item.activeUsers,
+    }));
+
+    const userGrowth = dateBuckets.map((startDate) => {
+      const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+      return {
+        date: formatDayLabel(startDate),
+        users: signupMap.get(key) || 0,
+      };
+    });
+
+    const recentIntegrityFlags = riskyAttemptAgg.map((item) => ({
+      id: item._id,
+      user: item.user || "Anonymous",
+      quiz: item.quiz || "Untitled Quiz",
+      score: item.score,
+      total: item.totalQuestions,
+      accuracy: item.accuracy,
+      date: item.createdAt,
+    }));
 
     res.json({
       totalUsers,
       totalQuizzes,
       totalAttempts,
       activeUsers,
+      engagementRate,
       averageScore,
+      averageTimeTaken,
+      averageAttemptsPerUser,
+      flaggedAttempts,
+      tabSwitchRate,
       recentActivity,
       mostAttemptedQuiz: popularQuizzes[0] || null,
       attemptsOverTime,
       popularQuizzes,
       scoreTrend,
       userActivityTrends,
+      userGrowth,
+      categoryPerformance,
+      hardestQuizzes,
+      easiestQuizzes,
+      quizHealth,
+      recentIntegrityFlags,
     });
   } catch (error) {
     console.error("Get analytics error:", error);
