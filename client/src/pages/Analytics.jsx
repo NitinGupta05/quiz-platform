@@ -104,13 +104,17 @@ function Analytics() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [windowDays, setWindowDays] = useState(7);
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [difficultyFilter, setDifficultyFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     async function fetchAnalytics() {
       try {
         setLoading(true);
         setError("");
-        const data = await getAdminAnalytics();
+        const data = await getAdminAnalytics(windowDays);
         setStats(data);
       } catch (fetchError) {
         console.error("Failed to fetch analytics:", fetchError);
@@ -121,7 +125,7 @@ function Analytics() {
     }
 
     fetchAnalytics();
-  }, []);
+  }, [windowDays]);
 
   const healthScore = useMemo(() => {
     if (!stats) return 0;
@@ -135,6 +139,25 @@ function Analytics() {
   }, [stats]);
 
   const insights = useMemo(() => buildInsights(stats), [stats]);
+
+  const categoryOptions = useMemo(() => {
+    return ["all", ...new Set((stats?.categoryPerformance || []).map((item) => item.category))];
+  }, [stats]);
+
+  const filteredQuizHealth = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return (stats?.quizHealth || []).filter((quiz) => {
+      const matchesCategory = categoryFilter === "all" || quiz.category === categoryFilter;
+      const matchesDifficulty = difficultyFilter === "all" || quiz.difficulty === difficultyFilter;
+      const matchesSearch =
+        !normalizedSearch ||
+        quiz.title.toLowerCase().includes(normalizedSearch) ||
+        quiz.category.toLowerCase().includes(normalizedSearch);
+
+      return matchesCategory && matchesDifficulty && matchesSearch;
+    });
+  }, [stats, categoryFilter, difficultyFilter, searchTerm]);
 
   const activityChartData = useMemo(() => {
     const labels = stats?.attemptsOverTime?.map((item) => item.date) || [];
@@ -163,39 +186,45 @@ function Analytics() {
     };
   }, [stats]);
 
-  const categoryChartData = useMemo(() => ({
-    labels: stats?.categoryPerformance?.map((item) => item.category) || [],
-    datasets: [
-      {
-        label: "Average Score",
-        data: stats?.categoryPerformance?.map((item) => item.averageScore) || [],
-        backgroundColor: "#0f766e",
-        borderRadius: 10,
-      },
-      {
-        label: "Attempts",
-        data: stats?.categoryPerformance?.map((item) => item.attempts) || [],
-        backgroundColor: "#c2410c",
-        borderRadius: 10,
-      },
-    ],
-  }), [stats]);
+  const categoryChartData = useMemo(
+    () => ({
+      labels: stats?.categoryPerformance?.map((item) => item.category) || [],
+      datasets: [
+        {
+          label: "Average Score",
+          data: stats?.categoryPerformance?.map((item) => item.averageScore) || [],
+          backgroundColor: "#0f766e",
+          borderRadius: 10,
+        },
+        {
+          label: "Attempts",
+          data: stats?.categoryPerformance?.map((item) => item.attempts) || [],
+          backgroundColor: "#c2410c",
+          borderRadius: 10,
+        },
+      ],
+    }),
+    [stats]
+  );
 
-  const compositionChartData = useMemo(() => ({
-    labels: ["Active Users", "Inactive Users", "Flagged Attempts", "Clean Attempts"],
-    datasets: [
-      {
-        data: [
-          stats?.activeUsers || 0,
-          Math.max(0, (stats?.totalUsers || 0) - (stats?.activeUsers || 0)),
-          stats?.flaggedAttempts || 0,
-          Math.max(0, (stats?.totalAttempts || 0) - (stats?.flaggedAttempts || 0)),
-        ],
-        backgroundColor: ["#0f766e", "#94a3b8", "#dc2626", "#ea580c"],
-        borderWidth: 0,
-      },
-    ],
-  }), [stats]);
+  const compositionChartData = useMemo(
+    () => ({
+      labels: ["Active Users", "Inactive Users", "Flagged Attempts", "Clean Attempts"],
+      datasets: [
+        {
+          data: [
+            stats?.activeUsers || 0,
+            Math.max(0, (stats?.totalUsers || 0) - (stats?.activeUsers || 0)),
+            stats?.flaggedAttempts || 0,
+            Math.max(0, (stats?.totalAttempts || 0) - (stats?.flaggedAttempts || 0)),
+          ],
+          backgroundColor: ["#0f766e", "#94a3b8", "#dc2626", "#ea580c"],
+          borderWidth: 0,
+        },
+      ],
+    }),
+    [stats]
+  );
 
   const trendOptions = {
     responsive: true,
@@ -252,6 +281,15 @@ function Analytics() {
           <p>Track engagement, quiz quality, user growth, and integrity from one place.</p>
         </div>
         <div className="header-actions">
+          <select
+            className="toolbar-select"
+            value={windowDays}
+            onChange={(e) => setWindowDays(Number(e.target.value))}
+          >
+            <option value={7}>Last 7 days</option>
+            <option value={14}>Last 14 days</option>
+            <option value={30}>Last 30 days</option>
+          </select>
           <Link to="/admin/dashboard" className="btn btn-outline">Back to Dashboard</Link>
           <Link to="/admin/quizzes" className="btn btn-primary">Manage Quizzes</Link>
         </div>
@@ -331,7 +369,7 @@ function Analytics() {
         <div className="section-heading">
           <div>
             <h2>Platform Pulse</h2>
-            <p>Attempts and average score across the last seven days.</p>
+            <p>Attempts and average score across the selected time range.</p>
           </div>
         </div>
         <div className="chart-shell large-chart">
@@ -429,7 +467,37 @@ function Analytics() {
             <p>This is the operational view: demand, score quality, pace, and integrity risk in one table.</p>
           </div>
         </div>
-        {stats?.quizHealth?.length ? (
+        <div className="filters-toolbar">
+          <input
+            className="toolbar-input"
+            type="text"
+            placeholder="Search quiz or category"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="toolbar-select"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category === "all" ? "All categories" : category}
+              </option>
+            ))}
+          </select>
+          <select
+            className="toolbar-select"
+            value={difficultyFilter}
+            onChange={(e) => setDifficultyFilter(e.target.value)}
+          >
+            <option value="all">All difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        {filteredQuizHealth.length ? (
           <div className="table-wrap">
             <table className="table analytics-table">
               <thead>
@@ -444,7 +512,7 @@ function Analytics() {
                 </tr>
               </thead>
               <tbody>
-                {stats.quizHealth.map((quiz) => (
+                {filteredQuizHealth.map((quiz) => (
                   <tr key={quiz.quizId}>
                     <td>{quiz.title}</td>
                     <td>{quiz.category}</td>
@@ -463,7 +531,7 @@ function Analytics() {
             </table>
           </div>
         ) : (
-          <p className="empty">No quiz health data available yet.</p>
+          <p className="empty">No quiz health data matches the current filters.</p>
         )}
       </section>
 
@@ -564,6 +632,20 @@ function Analytics() {
           display: flex;
           gap: 12px;
           flex-wrap: wrap;
+        }
+
+        .toolbar-input,
+        .toolbar-select {
+          min-height: 44px;
+          border: 1px solid rgba(148, 163, 184, 0.35);
+          border-radius: 14px;
+          padding: 0 14px;
+          background: #fff;
+          color: var(--text);
+        }
+
+        .toolbar-input {
+          min-width: 240px;
         }
 
         .hero-grid,
@@ -837,6 +919,13 @@ function Analytics() {
           margin-bottom: 18px;
         }
 
+        .filters-toolbar {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 16px;
+        }
+
         .table-wrap {
           overflow-x: auto;
         }
@@ -893,7 +982,9 @@ function Analytics() {
             width: 100%;
           }
 
-          .header-actions .btn {
+          .header-actions .btn,
+          .toolbar-input,
+          .toolbar-select {
             flex: 1;
             min-width: 160px;
           }

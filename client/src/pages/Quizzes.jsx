@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { API_BASE_URL } from "../config/api";
+import { getQuizCategories, getQuizzes } from "../services/quizService";
 
 function Quizzes() {
   const { user } = useContext(AuthContext);
@@ -18,42 +18,40 @@ function Quizzes() {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
 
   useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const data = await getQuizCategories();
+        setCategories(data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    }
+
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    fetchQuizzes();
+    async function fetchQuizList() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (filters.search) params.append("search", filters.search);
+        if (filters.category) params.append("category", filters.category);
+        if (filters.difficulty) params.append("difficulty", filters.difficulty);
+        params.append("page", filters.page);
+
+        const data = await getQuizzes(params.toString());
+        setQuizzes(data.quizzes || []);
+        setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
+      } catch (error) {
+        console.error("Failed to fetch quizzes:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchQuizList();
   }, [filters]);
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/quizzes/categories`);
-      const data = await res.json();
-      setCategories(data || []);
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    }
-  };
-
-  const fetchQuizzes = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (filters.search) params.append("search", filters.search);
-      if (filters.category) params.append("category", filters.category);
-      if (filters.difficulty) params.append("difficulty", filters.difficulty);
-      params.append("page", filters.page);
-
-      const res = await fetch(`${API_BASE_URL}/quizzes?${params}`);
-      const data = await res.json();
-      setQuizzes(data.quizzes || []);
-      setPagination(data.pagination || { page: 1, pages: 1, total: 0 });
-    } catch (error) {
-      console.error("Failed to fetch quizzes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFilterChange = (key, value) => {
     setFilters({ ...filters, [key]: value, page: 1 });
@@ -80,7 +78,6 @@ function Quizzes() {
         <p>Browse and take quizzes to test your knowledge</p>
       </div>
 
-      {/* Filters */}
       <div className="filters-bar">
         <div className="search-box">
           <input
@@ -113,7 +110,6 @@ function Quizzes() {
         </select>
       </div>
 
-      {/* Quizzes Grid */}
       {loading ? (
         <div className="loading">
           <div className="spinner"></div>
@@ -125,7 +121,7 @@ function Quizzes() {
               <div key={quiz._id} className="quiz-card">
                 <div className="quiz-card-header">
                   <span className={`badge badge-${quiz.difficulty}`}>{quiz.difficulty}</span>
-                  <span className="quiz-time">⏱ {quiz.timeLimit}s</span>
+                  <span className="quiz-time">Time {quiz.timeLimit}s</span>
                 </div>
                 <h3>{quiz.title}</h3>
                 <p>{quiz.description || "No description available"}</p>
@@ -140,7 +136,6 @@ function Quizzes() {
             ))}
           </div>
 
-          {/* Pagination */}
           {pagination.pages > 1 && (
             <div className="pagination">
               <button
@@ -172,25 +167,21 @@ function Quizzes() {
         .quizzes-page { max-width: 1200px; margin: 0 auto; }
         .page-header { margin-bottom: 30px; }
         .page-header h1 { font-size: 2rem; margin-bottom: 5px; }
-        
         .filters-bar {
           display: flex;
           gap: 15px;
           margin-bottom: 30px;
           flex-wrap: wrap;
         }
-        
         .search-box { flex: 1; min-width: 200px; }
         .search-box .form-input { width: 100%; }
         .filters-bar .form-select { width: 180px; }
-        
         .quizzes-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 25px;
           margin-bottom: 30px;
         }
-        
         .quiz-card {
           background: var(--surface);
           padding: 25px;
@@ -200,28 +191,22 @@ function Quizzes() {
           flex-direction: column;
           transition: var(--transition);
         }
-        
         .quiz-card:hover {
           transform: translateY(-3px);
           box-shadow: var(--shadow-md);
         }
-        
         .quiz-card-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 15px;
         }
-        
         .badge-easy { background: #4CAF50; color: white; }
         .badge-medium { background: #FF9800; color: white; }
         .badge-hard { background: #f44336; color: white; }
-        
         .quiz-time { color: var(--text-secondary); font-size: 0.9rem; }
-        
         .quiz-card h3 { margin-bottom: 10px; }
         .quiz-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px; flex: 1; }
-        
         .quiz-meta {
           display: flex;
           justify-content: space-between;
@@ -229,29 +214,17 @@ function Quizzes() {
           color: var(--text-secondary);
           margin-bottom: 20px;
         }
-        
         .quiz-category {
           background: var(--background);
           padding: 4px 12px;
           border-radius: var(--radius-full);
         }
-
         @media (max-width: 1024px) {
-          .quizzes-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-          }
+          .quizzes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
         }
-        
         @media (max-width: 768px) {
-          .page-header {
-            margin-bottom: 20px;
-          }
-
-          .page-header h1 {
-            font-size: 1.5rem;
-          }
-
+          .page-header { margin-bottom: 20px; }
+          .page-header h1 { font-size: 1.5rem; }
           .filters-bar { flex-direction: column; }
           .filters-bar .form-select, .search-box { width: 100%; }
           .quizzes-grid { grid-template-columns: 1fr; gap: 14px; }
@@ -264,4 +237,3 @@ function Quizzes() {
 }
 
 export default Quizzes;
-

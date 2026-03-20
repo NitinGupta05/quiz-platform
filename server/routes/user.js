@@ -142,7 +142,11 @@ router.get("/admin/analytics", auth, async (req, res) => {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    const dateBuckets = getDateBuckets(7);
+    const requestedWindow = Number.parseInt(req.query.window, 10);
+    const windowDays = Number.isFinite(requestedWindow) && requestedWindow >= 7 && requestedWindow <= 60
+      ? requestedWindow
+      : 7;
+    const dateBuckets = getDateBuckets(windowDays);
     const firstBucketDate = startOfDay(dateBuckets[0]);
     const lastBucketDate = endOfDay(dateBuckets[dateBuckets.length - 1]);
 

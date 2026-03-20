@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { formatDateDDMMYYYY } from "../utils/formatDate";
-import { API_BASE_URL } from "../config/api";
+import { getCurrentUserProfile, getProgress, updateCurrentUserProfile } from "../services/userService";
 
 function Profile() {
   const { user, updateUser } = useContext(AuthContext);
@@ -15,6 +15,7 @@ function Profile() {
   });
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -53,34 +54,25 @@ function Profile() {
 
   const refreshProfileData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const [profileRes, progressRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE_URL}/user/progress`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      setErrorMessage("");
+      const [profileData, progressData] = await Promise.all([getCurrentUserProfile(), getProgress()]);
 
-      const data = await profileRes.json();
-      const progressData = await progressRes.json();
-
-      setProfile(data);
+      setProfile(profileData);
       setStats({
         totalQuizzesTaken: progressData?.totalQuizzesTaken || 0,
         averageScore: progressData?.averageScore || 0,
         overallAccuracy: progressData?.overallAccuracy || 0,
       });
       setFormData({
-        name: data.name || "",
-        phone: data.phone || "",
-        country: data.country || "",
-        gender: data.gender || "",
-        dob: data.dob ? data.dob.split("T")[0] : "",
+        name: profileData.name || "",
+        phone: profileData.phone || "",
+        country: profileData.country || "",
+        gender: profileData.gender || "",
+        dob: profileData.dob ? profileData.dob.split("T")[0] : "",
       });
     } catch (error) {
       console.error("Failed to fetch profile:", error);
+      setErrorMessage(error.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -89,23 +81,14 @@ function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/auth/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        updateUser(formData);
-        setEditing(false);
-        refreshProfileData();
-      }
+      setErrorMessage("");
+      const updatedProfile = await updateCurrentUserProfile(formData);
+      updateUser(updatedProfile);
+      setEditing(false);
+      await refreshProfileData();
     } catch (error) {
       console.error("Failed to update profile:", error);
+      setErrorMessage(error.message || "Failed to update profile");
     }
   };
 
@@ -128,6 +111,8 @@ function Profile() {
           </button>
         </div>
       </div>
+
+      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
       <div className="profile-content">
         <div className="profile-card">
@@ -258,6 +243,8 @@ function Profile() {
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .header-actions { display: flex; gap: 10px; }
         .page-header h1 { font-size: 2rem; }
+        .alert { margin-bottom: 20px; padding: 12px 14px; border-radius: var(--radius-md); }
+        .alert-danger { background: #fee; color: var(--danger); border: 1px solid var(--danger); }
         .profile-content { display: grid; gap: 25px; }
         .profile-card { background: var(--surface); padding: 30px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
         .profile-avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; overflow: hidden; }
@@ -275,43 +262,16 @@ function Profile() {
         .stat-item { text-align: center; padding: 20px; background: var(--background); border-radius: var(--radius-md); }
         .stat-value { display: block; font-size: 2rem; font-weight: 600; color: var(--primary); }
         .stat-label { color: var(--text-secondary); font-size: 0.9rem; }
-
         @media (max-width: 768px) {
-          .page-header {
-            align-items: flex-start;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-          }
-
-          .page-header h1 {
-            font-size: 1.5rem;
-          }
-
-          .header-actions {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .header-actions .btn {
-            flex: 1;
-            min-width: 140px;
-          }
-
+          .page-header { align-items: flex-start; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+          .page-header h1 { font-size: 1.5rem; }
+          .header-actions { width: 100%; flex-wrap: wrap; }
+          .header-actions .btn { flex: 1; min-width: 140px; }
           .profile-card,
-          .stats-card {
-            padding: 16px;
-          }
-
+          .stats-card { padding: 16px; }
           .profile-form,
-          .profile-info {
-            max-width: 100%;
-          }
-
-          .info-item {
-            gap: 12px;
-            flex-wrap: wrap;
-          }
+          .profile-info { max-width: 100%; }
+          .info-item { gap: 12px; flex-wrap: wrap; }
         }
       `}</style>
     </div>
@@ -319,4 +279,3 @@ function Profile() {
 }
 
 export default Profile;
-

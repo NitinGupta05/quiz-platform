@@ -7,3 +7,7 @@ export function getQuizzes(query = "") {
 export function getQuizById(id) {
   return apiRequest(`/quizzes/${id}`);
 }
+
+export function getQuizCategories() {
+  return apiRequest("/quizzes/categories");
+}
