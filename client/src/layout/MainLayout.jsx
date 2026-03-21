@@ -24,13 +24,13 @@ function MainLayout({ children }) {
   const isCompactLayout = !isDesktop;
 
   const navLinks = [
-    { path: "/dashboard", label: "Dashboard", icon: "Home" },
-    { path: "/quizzes", label: "Quizzes", icon: "Quiz" },
-    { path: "/leaderboard", label: "Leaderboard", icon: "Rank" },
-    { path: "/progress", label: "Progress", icon: "Data" },
-    { path: "/profile", label: "Profile", icon: "User" },
-    { path: "/settings", label: "Settings", icon: "Gear" },
-    { path: "/about", label: "About", icon: "Info" },
+    { path: "/dashboard", label: "Dashboard", icon: "D" },
+    { path: "/quizzes", label: "Quizzes", icon: "Q" },
+    { path: "/leaderboard", label: "Leaderboard", icon: "L" },
+    { path: "/progress", label: "Progress", icon: "P" },
+    { path: "/profile", label: "Profile", icon: "U" },
+    { path: "/settings", label: "Settings", icon: "S" },
+    { path: "/about", label: "About", icon: "I" },
   ];
 
   const handleLogout = () => {
@@ -235,6 +235,17 @@ function MainLayout({ children }) {
           box-shadow: 0 12px 24px rgba(15, 118, 110, 0.18);
         }
         .nav-link.active .nav-icon { background: rgba(255,255,255,0.14); color: white; }
+        .nav-icon {
+          min-width: 38px;
+          width: 38px;
+          height: 38px;
+          padding: 0;
+          font-size: 0.82rem;
+          letter-spacing: 0;
+        }
+        .nav-label {
+          font-weight: 600;
+        }
         .main-content { flex: 1; min-width: 0; margin-left: 280px; transition: margin-left 0.25s ease; }
         .topbar {
           display: flex;
