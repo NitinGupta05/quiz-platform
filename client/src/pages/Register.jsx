@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -11,6 +11,15 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setLoading(false);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,7 +52,9 @@ function Register() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} autoComplete="off">
+      <input type="text" name="fake_username" autoComplete="username" style={{ display: "none" }} tabIndex={-1} />
+      <input type="password" name="fake_password" autoComplete="new-password" style={{ display: "none" }} tabIndex={-1} />
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="form-group">
@@ -53,6 +64,8 @@ function Register() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name"
+          name="register_name"
+          autoComplete="off"
           required
         />
       </div>
@@ -64,6 +77,8 @@ function Register() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
+          name="register_email"
+          autoComplete="off"
           required
         />
       </div>
@@ -75,6 +90,8 @@ function Register() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Create a password"
+          name="register_password"
+          autoComplete="new-password"
           required
         />
       </div>
@@ -86,6 +103,8 @@ function Register() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="Confirm your password"
+          name="register_confirm_password"
+          autoComplete="new-password"
           required
         />
       </div>

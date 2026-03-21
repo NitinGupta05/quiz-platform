@@ -27,6 +27,14 @@ function Login() {
     }
   }, [user, navigate, from]);
 
+  useEffect(() => {
+    setEmail("");
+    setPassword("");
+    setError("");
+    setLoading(false);
+    setLoginType("user");
+  }, [location.pathname]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -58,7 +66,7 @@ function Login() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} autoComplete="on">
       <div className="login-type-tabs">
         <button
           type="button"
@@ -91,6 +99,7 @@ function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
+          autoComplete={loginType === "admin" ? "username" : "email"}
           required
         />
       </div>
@@ -102,6 +111,7 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
+          autoComplete="current-password"
           required
         />
       </div>

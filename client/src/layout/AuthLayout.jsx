@@ -14,7 +14,9 @@ function AuthLayout() {
             <h1>QuizPro</h1>
             <p>{isRegister ? "Create your account" : "Welcome back!"}</p>
           </div>
-          <Outlet />
+          <div key={location.pathname}>
+            <Outlet />
+          </div>
           <div className="auth-footer">
             <p>
               {isRegister ? (
@@ -30,7 +32,7 @@ function AuthLayout() {
               )}
             </p>
           </div>
-</div>
+        </div>
       </div>
 
       <style>{`
