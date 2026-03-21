@@ -111,6 +111,10 @@ a:hover {
   gap: 8px;
 }
 
+.btn:hover {
+  text-decoration: none;
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -124,6 +128,7 @@ a:hover {
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  color: white;
   transform: translateY(-1px);
 }
 
@@ -151,6 +156,7 @@ a:hover {
 
 .btn-danger:hover:not(:disabled) {
   background-color: #d32f2f;
+  color: white;
 }
 
 .btn-sm {
