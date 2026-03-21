@@ -18,6 +18,10 @@ const lightTheme = {
   warning: "#b7791f",
   danger: "#c53030",
   "surface-hover": "#eef3f1",
+  "chrome-bg": "rgba(255, 255, 255, 0.82)",
+  "chrome-admin-bg": "rgba(255, 248, 240, 0.88)",
+  "panel-bg": "rgba(255, 255, 255, 0.84)",
+  "panel-soft": "rgba(255, 255, 255, 0.72)",
   shadow: "rgba(15, 23, 42, 0.12)",
   "shadow-lg": "rgba(15, 23, 42, 0.18)",
   "shadow-sm": "rgba(15, 23, 42, 0.08)",
@@ -30,21 +34,25 @@ const lightTheme = {
 };
 
 const darkTheme = {
-  background: "#0f1720",
-  "background-elevated": "#16212d",
-  surface: "#182431",
-  "surface-muted": "#223143",
+  background: "#0b1320",
+  "background-elevated": "#111c2b",
+  surface: "#152233",
+  "surface-muted": "#1b2a3d",
   primary: "#4fd1c5",
   "primary-dark": "#2dd4bf",
   "primary-soft": "rgba(79, 209, 197, 0.12)",
   secondary: "#f59e0b",
   text: "#f4f7fb",
   "text-secondary": "#a9b8c8",
-  border: "#2b3d51",
+  border: "#2a3a4e",
   success: "#48bb78",
   warning: "#f6ad55",
   danger: "#fc8181",
-  "surface-hover": "#223244",
+  "surface-hover": "#203145",
+  "chrome-bg": "rgba(17, 28, 43, 0.9)",
+  "chrome-admin-bg": "rgba(24, 34, 49, 0.92)",
+  "panel-bg": "rgba(21, 34, 51, 0.94)",
+  "panel-soft": "rgba(17, 28, 43, 0.86)",
   shadow: "rgba(0, 0, 0, 0.35)",
   "shadow-lg": "rgba(0, 0, 0, 0.5)",
   "shadow-sm": "rgba(0, 0, 0, 0.25)",
@@ -66,7 +74,6 @@ export function ThemeProvider({ children }) {
     } else if (savedTheme === "light") {
       setIsDark(false);
     } else {
-      // Check system preference
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       setIsDark(prefersDark);
     }
@@ -74,8 +81,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const theme = isDark ? darkTheme : lightTheme;
-    
-    // Apply CSS variables
+
     Object.entries(theme).forEach(([key, value]) => {
       document.documentElement.style.setProperty(`--${key}`, value);
     });
@@ -93,4 +99,3 @@ export function ThemeProvider({ children }) {
     </ThemeContext.Provider>
   );
 }
-

@@ -191,9 +191,9 @@ function AdminLayout() {
         .main-content { flex: 1; min-width: 0; margin-left: 286px; transition: margin-left 0.25s ease; }
         .topbar {
           display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px clamp(14px, 2.4vw, 24px);
-          background: rgba(255,255,255,0.78); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 90;
+          background: var(--chrome-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 90;
         }
-        .admin-topbar { background: rgba(255, 248, 240, 0.86); }
+        .admin-topbar { background: var(--chrome-admin-bg); }
         .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
         .brand { text-decoration: none; color: var(--text); font-weight: 800; letter-spacing: 0.02em; }
         .mode-pill {

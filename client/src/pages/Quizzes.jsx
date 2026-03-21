@@ -340,7 +340,7 @@ function Quizzes() {
           margin-bottom: 4px;
         }
         .stat-tile p { font-size: 0.88rem; }
-        .filters-panel { padding: 24px; background: rgba(255,255,255,0.84); backdrop-filter: blur(12px); }
+        .filters-panel { padding: 24px; background: var(--panel-bg); backdrop-filter: blur(12px); }
         .filters-head {
           display: flex;
           justify-content: space-between;

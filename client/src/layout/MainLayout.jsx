@@ -242,7 +242,7 @@ function MainLayout({ children }) {
           align-items: center;
           gap: 12px;
           padding: 14px clamp(14px, 2.4vw, 24px);
-          background: rgba(255,255,255,0.78);
+          background: var(--chrome-bg);
           backdrop-filter: blur(14px);
           border-bottom: 1px solid var(--border);
           position: sticky;
