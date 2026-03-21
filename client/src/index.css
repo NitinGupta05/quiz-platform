@@ -1,26 +1,35 @@
 /* CSS Variables - These will be set by ThemeContext */
 :root {
-  --background: #FFFBDE;
+  --background: #f4efe6;
+  --background-elevated: #fbf8f2;
   --surface: #FFFFFF;
-  --primary: #129990;
-  --primary-dark: #096B68;
-  --secondary: #90D1CA;
-  --text: #1a1a1a;
-  --text-secondary: #666666;
-  --border: #E0E0E0;
-  --success: #4CAF50;
-  --warning: #FF9800;
-  --danger: #f44336;
-  --surface-hover: #F5F5F5;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --shadow-lg: rgba(0, 0, 0, 0.15);
-  --shadow-sm: rgba(0, 0, 0, 0.05);
-  --radius: 8px;
-  --radius-lg: 12px;
-  --radius-md: 8px;
+  --surface-muted: #f7f2ea;
+  --primary: #0f766e;
+  --primary-dark: #115e59;
+  --primary-soft: #d9f1ee;
+  --secondary: #d97706;
+  --text: #172026;
+  --text-secondary: #51606d;
+  --border: #d7dfdf;
+  --success: #2f855a;
+  --warning: #b7791f;
+  --danger: #c53030;
+  --surface-hover: #eef3f1;
+  --shadow: rgba(15, 23, 42, 0.12);
+  --shadow-lg: rgba(15, 23, 42, 0.18);
+  --shadow-sm: rgba(15, 23, 42, 0.08);
+  --radius: 10px;
+  --radius-lg: 20px;
+  --radius-md: 12px;
   --radius-sm: 4px;
   --radius-full: 9999px;
   --transition: all 0.2s ease;
+  --spacing-xs: 6px;
+  --spacing-sm: 12px;
+  --spacing-md: 20px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --page-width: 1200px;
 }
 
 /* Reset */
@@ -37,10 +46,13 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   line-height: 1.6;
   color: var(--text);
   background-color: var(--background);
+  background-image:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(217, 119, 6, 0.08), transparent 28%);
   min-height: 100vh;
   transition: var(--transition);
 }
@@ -91,7 +103,7 @@ a:hover {
   padding: 12px 24px;
   font-size: 1rem;
   font-weight: 500;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition);
@@ -107,26 +119,29 @@ a:hover {
 .btn-primary {
   background-color: var(--primary);
   color: white;
+  box-shadow: 0 10px 20px rgba(15, 118, 110, 0.18);
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   background-color: var(--secondary);
-  color: var(--text);
+  color: white;
 }
 
 .btn-outline {
-  background-color: transparent;
-  border: 2px solid var(--primary);
-  color: var(--primary);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background-color: var(--primary);
-  color: white;
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: var(--surface-hover);
 }
 
 .btn-danger {
@@ -165,11 +180,12 @@ a:hover {
   width: 100%;
   padding: 12px 16px;
   font-size: 1rem;
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background-color: var(--surface);
   color: var(--text);
   transition: var(--transition);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .form-input:focus,
@@ -177,6 +193,7 @@ a:hover {
 .form-textarea:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
 }
 
 .form-input::placeholder {
@@ -189,6 +206,7 @@ a:hover {
   border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(15, 23, 42, 0.04);
   transition: var(--transition);
 }
 
@@ -208,7 +226,7 @@ a:hover {
 .table th {
   font-weight: 600;
   color: var(--text);
-  background-color: var(--background);
+  background-color: var(--surface-muted);
 }
 
 .table tbody tr:hover {
@@ -248,6 +266,7 @@ a:hover {
   font-weight: 600;
   border-radius: var(--radius-full);
   text-transform: capitalize;
+  letter-spacing: 0.02em;
 }
 
 .badge-primary {
@@ -295,6 +314,9 @@ a:hover {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
 }
 
 .empty-state h3 {
@@ -359,6 +381,22 @@ a:hover {
 .quizzes-list {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* Responsive */
