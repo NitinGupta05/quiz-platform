@@ -143,7 +143,13 @@ function AdminLayout() {
 
             <div className="profile-wrap" ref={dropdownRef}>
               <button className="profile-trigger" onClick={() => setProfileOpen((prev) => !prev)} aria-label="Admin profile menu">
-                <span className="avatar admin-avatar">A</span>
+                <span className="avatar admin-avatar">
+                  {user?.image ? (
+                    <img src={user.image} alt={user.name || "Admin"} />
+                  ) : (
+                    user?.name?.charAt(0)?.toUpperCase() || "A"
+                  )}
+                </span>
               </button>
 
               {profileOpen && (
@@ -219,6 +225,7 @@ function AdminLayout() {
         .profile-trigger { border: none; background: none; cursor: pointer; padding: 0; }
         .avatar { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; }
         .admin-avatar { background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 10px 20px rgba(180, 83, 9, 0.22); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-dropdown {
           position: absolute; right: 0; top: calc(100% + 10px); min-width: min(240px, calc(100vw - 24px)); background: var(--surface);
           border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16); overflow: hidden; z-index: 110;

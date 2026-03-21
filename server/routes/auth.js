@@ -44,6 +44,24 @@ function isInvalidEmail(email) {
   return localPart === "unknown" || localPart === "anonymous";
 }
 
+function validateProfileImage(image) {
+  const normalized = normalizeText(image);
+  if (!normalized) return "";
+
+  const allowedPattern = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
+  if (!allowedPattern.test(normalized)) {
+    throw new Error("Profile image must be a PNG, JPG, WEBP, or GIF data URL");
+  }
+
+  const approxBytes = Math.ceil((normalized.length * 3) / 4);
+  const maxBytes = 1.5 * 1024 * 1024;
+  if (approxBytes > maxBytes) {
+    throw new Error("Profile image must be smaller than 1.5 MB");
+  }
+
+  return normalized;
+}
+
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
@@ -102,6 +120,7 @@ router.post("/register", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        image: user.image,
       },
     });
   } catch (error) {
@@ -186,6 +205,7 @@ router.post("/admin/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        image: user.image,
       },
     });
   } catch (error) {
@@ -213,12 +233,13 @@ router.put("/profile", auth, async (req, res) => {
   try {
     const { phone, country, gender, dob } = req.body;
     const name = normalizeText(req.body.name);
+    const image = validateProfileImage(req.body.image);
 
     if (name && isInvalidDisplayName(name)) {
       return res.status(400).json({ message: "Please enter a valid name" });
     }
 
-    const updates = { phone, country, gender, dob };
+    const updates = { phone, country, gender, dob, image };
     if (name) {
       updates.name = name;
     }
@@ -232,7 +253,8 @@ router.put("/profile", auth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error("Update profile error:", error);
-    res.status(500).json({ message: "Server error" });
+    const isValidationError = error.message?.includes("Profile image");
+    res.status(isValidationError ? 400 : 500).json({ message: isValidationError ? error.message : "Server error" });
   }
 });
 

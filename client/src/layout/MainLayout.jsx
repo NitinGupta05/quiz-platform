@@ -143,7 +143,13 @@ function MainLayout({ children }) {
 
             <div className="profile-wrap" ref={dropdownRef}>
               <button className="profile-trigger" onClick={() => setProfileOpen((prev) => !prev)} aria-label="Profile menu">
-                <span className="avatar">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
+                <span className="avatar">
+                  {user?.image ? (
+                    <img src={user.image} alt={user.name || "User"} />
+                  ) : (
+                    user?.name?.charAt(0)?.toUpperCase() || "U"
+                  )}
+                </span>
               </button>
 
               {profileOpen && (
@@ -285,6 +291,11 @@ function MainLayout({ children }) {
           place-items: center;
           font-weight: 700;
           box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
+        }
+        .avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
         .profile-dropdown {
           position: absolute;

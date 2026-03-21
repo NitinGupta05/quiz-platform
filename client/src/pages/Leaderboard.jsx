@@ -90,6 +90,12 @@ function Leaderboard() {
         </div>
       </section>
 
+      <div className="range-pills" aria-label="Leaderboard range selector">
+        <button type="button" className="range-pill">Weekly</button>
+        <button type="button" className="range-pill active">All Time</button>
+        <button type="button" className="range-pill">Monthly</button>
+      </div>
+
       {loading ? (
         <div className="loading"><div className="spinner"></div></div>
       ) : leaderboard.length > 0 ? (
@@ -234,16 +240,21 @@ function Leaderboard() {
           padding: 28px;
           border-radius: 28px;
           background:
-            radial-gradient(circle at top right, rgba(217, 119, 6, 0.18), transparent 26%),
-            linear-gradient(135deg, var(--surface), var(--background-elevated));
+            radial-gradient(circle at top right, rgba(57, 215, 196, 0.22), transparent 26%),
+            linear-gradient(160deg, #071c67, #0a2e86 62%, #0b2470);
+          color: #ffffff;
+        }
+        .leaderboard-hero p,
+        .leaderboard-hero h1 {
+          color: #ffffff;
         }
         .eyebrow {
           display: inline-flex;
           align-items: center;
           padding: 8px 12px;
           border-radius: 999px;
-          background: var(--primary-soft);
-          color: var(--primary-dark);
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffd37a;
           font-size: 0.78rem;
           font-weight: 800;
           letter-spacing: 0.08em;
@@ -253,6 +264,8 @@ function Leaderboard() {
         .hero-copy h1 {
           font-size: clamp(2rem, 4vw, 3rem);
           margin-bottom: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
         }
         .hero-stats {
           display: grid;
@@ -261,17 +274,18 @@ function Leaderboard() {
           align-self: stretch;
         }
         .hero-stat {
-          background: var(--surface);
-          border: 1px solid var(--border);
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.14);
           border-radius: 20px;
           padding: 18px;
           display: flex;
           flex-direction: column;
           justify-content: center;
           gap: 6px;
+          backdrop-filter: blur(12px);
         }
         .hero-stat-label {
-          color: var(--text-secondary);
+          color: rgba(255, 255, 255, 0.72);
           font-size: 0.78rem;
           text-transform: uppercase;
           letter-spacing: 0.08em;
@@ -279,6 +293,37 @@ function Leaderboard() {
         }
         .hero-stat strong {
           font-size: 1.5rem;
+          color: #ffffff;
+        }
+        .range-pills {
+          width: fit-content;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #082153, #0b2f79);
+          border: 1px solid rgba(79, 209, 197, 0.42);
+          box-shadow: 0 16px 28px rgba(7, 28, 103, 0.26);
+        }
+        .range-pill {
+          min-width: 116px;
+          height: 44px;
+          border-radius: 999px;
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.84);
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+        .range-pill:hover {
+          transform: translateY(-1px);
+        }
+        .range-pill.active {
+          background: linear-gradient(135deg, #2ad2b8, #4fd1c5);
+          color: #083c49;
+          box-shadow: 0 10px 20px rgba(42, 210, 184, 0.28);
         }
         .podium-strip {
           display: grid;
@@ -286,46 +331,47 @@ function Leaderboard() {
           gap: 18px;
         }
         .podium-card {
-          background: linear-gradient(180deg, var(--surface), var(--background-elevated));
+          background: linear-gradient(180deg, #0f2d78, #14378e);
           border-radius: 24px;
           padding: 22px;
           text-align: center;
           animation: cardFloatIn 0.55s ease both;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
+          color: #ffffff;
         }
         .podium-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 24px 44px rgba(15, 23, 42, 0.12);
         }
         .podium-card.gold {
-          background: linear-gradient(180deg, rgba(255, 209, 102, 0.18), var(--surface));
+          background: linear-gradient(180deg, #2144a3, #10307f);
         }
         .podium-card.silver {
-          background: linear-gradient(180deg, rgba(196, 203, 212, 0.22), var(--surface));
+          background: linear-gradient(180deg, #17378f, #0c2b74);
         }
         .podium-card.bronze {
-          background: linear-gradient(180deg, rgba(205, 127, 50, 0.18), var(--surface));
+          background: linear-gradient(180deg, #17378f, #0c2b74);
         }
         .podium-icon {
-          width: 46px;
-          height: 46px;
+          width: 58px;
+          height: 58px;
           margin: 0 auto 10px;
-          border-radius: 14px;
+          border-radius: 50%;
           display: grid;
           place-items: center;
-          background: var(--surface);
-          color: var(--primary-dark);
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: inset 0 -8px 14px rgba(15, 23, 42, 0.04);
+          background: rgba(255, 255, 255, 0.14);
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.12);
         }
         .podium-icon svg {
-          width: 22px;
-          height: 22px;
+          width: 26px;
+          height: 26px;
         }
         .podium-label {
           display: inline-block;
           margin-bottom: 14px;
-          color: var(--text-secondary);
+          color: rgba(255, 255, 255, 0.8);
           font-size: 0.82rem;
           font-weight: 700;
           text-transform: uppercase;
@@ -362,7 +408,7 @@ function Leaderboard() {
           display: block;
           font-size: 1.8rem;
           margin-bottom: 4px;
-          color: var(--text);
+          color: #ffffff;
         }
         .leaderboard-table-shell {
           background: linear-gradient(180deg, var(--surface), var(--background-elevated));
@@ -453,6 +499,14 @@ function Leaderboard() {
           .hero-stats {
             grid-template-columns: 1fr 1fr;
           }
+          .range-pills {
+            width: 100%;
+            justify-content: stretch;
+          }
+          .range-pill {
+            flex: 1;
+            min-width: 0;
+          }
         }
         @media (max-width: 768px) {
           .leaderboard-page {
@@ -485,6 +539,14 @@ function Leaderboard() {
         @media (max-width: 520px) {
           .hero-stats {
             grid-template-columns: 1fr;
+          }
+          .range-pills {
+            gap: 6px;
+            padding: 6px;
+          }
+          .range-pill {
+            height: 40px;
+            font-size: 0.88rem;
           }
         }
       `}</style>

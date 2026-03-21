@@ -38,7 +38,13 @@ function Header() {
           {user ? (
             <div className="user-menu">
               <Link to={user.role === "admin" ? "/admin/profile" : "/profile"} className="user-btn">
-                <div className="user-avatar">{user.name?.charAt(0).toUpperCase()}</div>
+                <div className="user-avatar">
+                  {user.image ? (
+                    <img src={user.image} alt={user.name} />
+                  ) : (
+                    user.name?.charAt(0).toUpperCase()
+                  )}
+                </div>
                 <span className="user-name">{user.name}</span>
               </Link>
               <button className="btn btn-sm btn-outline" onClick={handleLogout}>
@@ -157,6 +163,13 @@ function Header() {
           align-items: center;
           justify-content: center;
           font-weight: 600;
+          overflow: hidden;
+        }
+
+        .user-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .user-name {
