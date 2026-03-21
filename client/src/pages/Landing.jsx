@@ -4,6 +4,31 @@ import { AuthContext } from "../context/AuthContext";
 import { getQuizzes, getLeaderboard } from "../services/quizService";
 import { getPublicStats } from "../services/userService";
 
+const featureItems = [
+  {
+    label: "Timer",
+    title: "Timed quiz sessions",
+    description: "Practice with countdown-based rounds that feel closer to real assessments.",
+  },
+  {
+    label: "Track",
+    title: "Progress you can follow",
+    description: "Review history, accuracy, and category-wise performance from one account.",
+  },
+  {
+    label: "Rank",
+    title: "Competitive leaderboard",
+    description: "See how you compare with other learners and keep improving your position.",
+  },
+  {
+    label: "Admin",
+    title: "Admin-ready controls",
+    description: "Create quizzes, manage content, and monitor platform activity from the dashboard.",
+  },
+];
+
+const heroHighlights = ["Role-based auth", "Timed exams", "Instant scoring"];
+
 function Landing() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -73,9 +98,13 @@ function Landing() {
   return (
     <div className="landing-page">
       <header className="landing-header">
-        <div className="header-content">
-          <div className="logo">
-            <h1>QuizPro</h1>
+        <div className="landing-shell header-content">
+          <div className="logo-block">
+            <span className="logo-mark">QP</span>
+            <div>
+              <h1>QuizPro</h1>
+              <p>Interactive quiz platform</p>
+            </div>
           </div>
           <nav className="header-nav">
             <Link to="/">Home</Link>
@@ -91,7 +120,7 @@ function Landing() {
                 </Link>
               ) : (
                 <>
-                  <button className="btn btn-ghost" onClick={handleLoginClick}>Login</button>
+                  <button className="btn btn-outline" onClick={handleLoginClick}>Login</button>
                   <button className="btn btn-primary" onClick={handleRegisterClick}>Sign Up</button>
                 </>
               )}
@@ -101,12 +130,12 @@ function Landing() {
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label="Toggle mobile navigation"
             >
-              {mobileMenuOpen ? "X" : "Menu"}
+              {mobileMenuOpen ? "Close" : "Menu"}
             </button>
           </div>
         </div>
         {mobileMenuOpen && (
-          <div className="mobile-menu">
+          <div className="mobile-menu landing-shell">
             <nav className="mobile-nav-links">
               <Link to="/" onClick={closeMobileMenu}>Home</Link>
               <Link to="/quizzes" onClick={closeMobileMenu}>Quizzes</Link>
@@ -116,7 +145,7 @@ function Landing() {
             <div className="mobile-menu-actions">
               {!user ? (
                 <>
-                  <button className="btn btn-ghost" onClick={handleLoginClick}>Login</button>
+                  <button className="btn btn-outline" onClick={handleLoginClick}>Login</button>
                   <button className="btn btn-primary" onClick={handleRegisterClick}>Register</button>
                 </>
               ) : (
@@ -128,7 +157,7 @@ function Landing() {
                   >
                     Dashboard
                   </Link>
-                  <button className="btn btn-ghost" onClick={handleMobileLogout}>Logout</button>
+                  <button className="btn btn-outline" onClick={handleMobileLogout}>Logout</button>
                 </>
               )}
             </div>
@@ -136,322 +165,724 @@ function Landing() {
         )}
       </header>
 
-      <section className="hero">
-        <div className="hero-content">
-          <h1>Master Your Knowledge with Interactive Quizzes</h1>
+      <section className="landing-shell hero-section">
+        <div className="hero-copy">
+          <span className="hero-kicker">Full-stack learning platform</span>
+          <h2>Take quizzes that feel purposeful, fast, and easy to revisit.</h2>
           <p>
-            Challenge yourself with timed quizzes, track your progress, compete on the leaderboard,
-            and build real learning momentum.
+            QuizPro brings together timed assessments, rankings, progress history, and admin tools in one
+            clean MERN application that works for practice as well as portfolio demos.
           </p>
-          <div className="hero-buttons">
-            <Link to="/quizzes" className="btn btn-primary btn-lg browse-btn">
-              Browse Quizzes
-            </Link>
-            <button className="btn btn-outline btn-lg" onClick={handleRegisterClick}>
-              Get Started Free
-            </button>
-          </div>
-        </div>
-        <div className="hero-visual">
-          <div className="floating-card card-1">Quiz</div>
-          <div className="floating-card card-2">Rank</div>
-          <div className="floating-card card-3">Track</div>
-        </div>
-      </section>
-
-      <section className="stats-section">
-        <div className="stats-container">
-          <div className="stat-item">
-            <span className="stat-number">{stats.totalUsers.toLocaleString()}+</span>
-            <span className="stat-label">Active Users</span>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="stat-number">{stats.totalQuizzes}+</span>
-            <span className="stat-label">Quizzes</span>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="stat-number">{stats.totalAttempts.toLocaleString()}+</span>
-            <span className="stat-label">Quiz Attempts</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="features">
-        <h2>Why Choose QuizPro?</h2>
-        <div className="features-grid">
-          <div className="feature-card">
-            <span className="feature-icon">Time</span>
-            <h3>Timed Quizzes</h3>
-            <p>Practice under pressure with real countdown-based quiz sessions.</p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon">Stats</span>
-            <h3>Track Progress</h3>
-            <p>Review your results, accuracy, and category performance over time.</p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon">Rank</span>
-            <h3>Compete & Lead</h3>
-            <p>Climb the leaderboard and compare your results against other learners.</p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon">Admin</span>
-            <h3>Admin Control</h3>
-            <p>Manage users, quizzes, and performance insights from one dashboard.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="featured-quizzes">
-        <div className="section-header">
-          <h2>Featured Quizzes</h2>
-          <Link to="/quizzes" className="view-all">View All</Link>
-        </div>
-        {loading ? (
-          <div className="loading"><div className="spinner"></div></div>
-        ) : quizzes.length > 0 ? (
-          <div className="quizzes-grid">
-            {quizzes.map((quiz) => (
-              <div key={quiz._id} className="quiz-card">
-                <div className="quiz-card-header">
-                  <span className={`badge badge-${quiz.difficulty}`}>{quiz.difficulty}</span>
-                  <span className="quiz-time">Time {quiz.timeLimit}s</span>
-                </div>
-                <h3>{quiz.title}</h3>
-                <p>{quiz.description || "No description available"}</p>
-                <div className="quiz-meta">
-                  <span className="quiz-category">{quiz.category}</span>
-                  <span className="quiz-attempts">{quiz.totalAttempts || 0} attempts</span>
-                </div>
-                <button className="btn btn-primary btn-block" onClick={() => handleStartQuiz(quiz._id)}>
-                  {user ? "Start Quiz" : "Login to Start"}
-                </button>
-              </div>
+          <div className="hero-highlights">
+            {heroHighlights.map((item) => (
+              <span key={item} className="hero-highlight">{item}</span>
             ))}
           </div>
-        ) : (
-          <div className="empty-state">
-            <p>No quizzes available yet. Check back soon.</p>
+          <div className="hero-buttons">
+            <Link to="/quizzes" className="btn btn-primary btn-lg">Browse Quizzes</Link>
+            <button className="btn btn-outline btn-lg" onClick={handleRegisterClick}>Get Started Free</button>
           </div>
-        )}
-      </section>
-
-      <section className="leaderboard-preview">
-        <div className="section-header">
-          <h2>Top Performers</h2>
-          <Link to="/leaderboard" className="view-all">View Full Leaderboard</Link>
         </div>
-        {loading ? (
-          <div className="loading"><div className="spinner"></div></div>
-        ) : leaderboard.length > 0 ? (
-          <div className="leaderboard-table">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>User</th>
-                  <th>Score</th>
-                  <th>Accuracy</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaderboard.map((entry, index) => (
-                  <tr key={index} className={index < 3 ? `top-${index + 1}` : ""}>
-                    <td>
-                      <span className={`rank rank-${index + 1}`}>
-                        {index === 0 ? "#1" : index === 1 ? "#2" : index === 2 ? "#3" : `#${index + 1}`}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="user-cell">
-                        <div className="user-avatar">
-                          {entry.userImage ? (
-                            <img src={entry.userImage} alt={entry.userName} />
-                          ) : (
-                            <span>{entry.userName?.charAt(0).toUpperCase()}</span>
-                          )}
-                        </div>
-                        <span className="user-name">{entry.userName}</span>
-                      </div>
-                    </td>
-                    <td><span className="score">{entry.score}/{entry.total}</span></td>
-                    <td><span className="accuracy">{entry.accuracy}%</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+        <div className="hero-panel">
+          <div className="hero-card hero-card-primary">
+            <div className="hero-card-header">
+              <span className="icon-chip">Live</span>
+              <span>Student workflow</span>
+            </div>
+            <h3>Practice, submit, and review results instantly</h3>
+            <p>
+              Start a quiz, track time pressure, and keep a running history of scores and accuracy.
+            </p>
           </div>
-        ) : (
-          <div className="empty-state">
-            <p>No leaderboard data yet. Be the first to take a quiz.</p>
+          <div className="hero-card-grid">
+            <div className="hero-card stat-card-mini">
+              <span className="mini-label">Users</span>
+              <strong>{stats.totalUsers.toLocaleString()}+</strong>
+              <p>Active learners</p>
+            </div>
+            <div className="hero-card stat-card-mini">
+              <span className="mini-label">Attempts</span>
+              <strong>{stats.totalAttempts.toLocaleString()}+</strong>
+              <p>Total submissions</p>
+            </div>
+            <div className="hero-card hero-card-accent">
+              <span className="icon-chip warm">Admin</span>
+              <strong>{stats.totalQuizzes} quizzes available</strong>
+              <p>Create, manage, and monitor from one dashboard.</p>
+            </div>
           </div>
-        )}
+        </div>
       </section>
 
-      <section className="cta">
-        <h2>Ready to Start Your Journey?</h2>
-        <p>Join the platform, take quizzes, and track your growth for free.</p>
-        <div className="cta-buttons">
-          <button className="btn btn-primary btn-lg" onClick={handleRegisterClick}>
-            Create Free Account
-          </button>
-          <Link to="/quizzes" className="btn btn-outline btn-lg">
-            Explore Quizzes
-          </Link>
+      <section className="landing-shell metric-strip">
+        <div className="metric-item">
+          <span className="metric-value">{stats.totalUsers.toLocaleString()}+</span>
+          <span className="metric-label">Registered users</span>
+        </div>
+        <div className="metric-item">
+          <span className="metric-value">{stats.totalQuizzes}+</span>
+          <span className="metric-label">Available quizzes</span>
+        </div>
+        <div className="metric-item">
+          <span className="metric-value">{stats.totalAttempts.toLocaleString()}+</span>
+          <span className="metric-label">Attempts submitted</span>
+        </div>
+      </section>
+
+      <section className="landing-shell feature-section">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Why it feels complete</span>
+            <h2>Built for both learning flow and admin control</h2>
+          </div>
+          <p>
+            The project combines user-side quiz experience with admin-side content management and analytics.
+          </p>
+        </div>
+        <div className="feature-grid">
+          {featureItems.map((feature) => (
+            <article key={feature.title} className="feature-card">
+              <span className="icon-chip">{feature.label}</span>
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-shell showcase-grid">
+        <div className="showcase-panel">
+          <div className="section-heading compact">
+            <div>
+              <span className="section-kicker">Featured content</span>
+              <h2>Popular quizzes to start with</h2>
+            </div>
+            <Link to="/quizzes" className="view-all">View all quizzes</Link>
+          </div>
+          {loading ? (
+            <div className="loading"><div className="spinner"></div></div>
+          ) : quizzes.length > 0 ? (
+            <div className="landing-quizzes-grid">
+              {quizzes.map((quiz) => (
+                <article key={quiz._id} className="landing-quiz-card">
+                  <div className="landing-quiz-topline">
+                    <span className={`badge badge-${quiz.difficulty}`}>{quiz.difficulty}</span>
+                    <span className="meta-pill">{quiz.timeLimit}s</span>
+                  </div>
+                  <h3>{quiz.title}</h3>
+                  <p>{quiz.description || "Practice with this quiz and track your score instantly."}</p>
+                  <div className="landing-quiz-meta">
+                    <span>{quiz.category}</span>
+                    <span>{quiz.totalAttempts || 0} attempts</span>
+                  </div>
+                  <button className="btn btn-primary btn-block" onClick={() => handleStartQuiz(quiz._id)}>
+                    {user ? "Start quiz" : "Login to start"}
+                  </button>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <h3>No quizzes available yet</h3>
+              <p>Populate the quiz library from the admin dashboard and they will appear here.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="showcase-panel leaderboard-panel">
+          <div className="section-heading compact">
+            <div>
+              <span className="section-kicker">Leaderboard</span>
+              <h2>Current top performers</h2>
+            </div>
+            <Link to="/leaderboard" className="view-all">Full leaderboard</Link>
+          </div>
+          {loading ? (
+            <div className="loading"><div className="spinner"></div></div>
+          ) : leaderboard.length > 0 ? (
+            <div className="leaderboard-list">
+              {leaderboard.map((entry, index) => (
+                <div key={`${entry.userName}-${index}`} className="leaderboard-row">
+                  <div className="leaderboard-user">
+                    <span className={`leader-rank leader-rank-${index + 1}`}>#{index + 1}</span>
+                    <div className="user-avatar">
+                      {entry.userImage ? (
+                        <img src={entry.userImage} alt={entry.userName} />
+                      ) : (
+                        <span>{entry.userName?.charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div>
+                      <strong>{entry.userName}</strong>
+                      <p>{entry.score}/{entry.total} score</p>
+                    </div>
+                  </div>
+                  <span className="leader-accuracy">{entry.accuracy}%</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state compact-state">
+              <h3>No leaderboard data yet</h3>
+              <p>Once quiz attempts start coming in, the ranking table will fill automatically.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="landing-shell cta-section">
+        <div>
+          <span className="section-kicker">Ready to try it?</span>
+          <h2>Create an account and take your first quiz today.</h2>
+          <p>
+            Students can start in seconds, and admins can manage content from a dedicated dashboard.
+          </p>
+        </div>
+        <div className="cta-actions">
+          <button className="btn btn-primary btn-lg" onClick={handleRegisterClick}>Create Free Account</button>
+          <Link to="/quizzes" className="btn btn-outline btn-lg">Explore Quizzes</Link>
         </div>
       </section>
 
       <footer className="landing-footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <h3>QuizPro</h3>
-            <p>Your ultimate quiz platform</p>
+        <div className="landing-shell footer-grid">
+          <div>
+            <div className="logo-block footer-brand">
+              <span className="logo-mark">QP</span>
+              <div>
+                <h3>QuizPro</h3>
+                <p>MERN-based quiz platform for learning and assessment.</p>
+              </div>
+            </div>
           </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <Link to="/quizzes">Quizzes</Link>
-              <Link to="/leaderboard">Leaderboard</Link>
-              <Link to="/about">About Us</Link>
-            </div>
-            <div className="footer-column">
-              <h4>Account</h4>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Sign Up</Link>
-            </div>
+          <div className="footer-column">
+            <h4>Platform</h4>
+            <Link to="/quizzes">Quizzes</Link>
+            <Link to="/leaderboard">Leaderboard</Link>
+            <Link to="/about">About</Link>
+          </div>
+          <div className="footer-column">
+            <h4>Account</h4>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Sign up</Link>
           </div>
         </div>
-        <div className="footer-bottom">
+        <div className="landing-shell footer-bottom">
           <p>&copy; 2026 QuizPro. All rights reserved.</p>
         </div>
       </footer>
 
       <style>{`
-        .landing-page { min-height: 100vh; background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%); }
-        .landing-header { position: fixed; top: 0; left: 0; right: 0; background: var(--surface); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); z-index: 1000; }
-        .header-content { max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .logo h1 { font-size: 1.5rem; color: var(--primary); margin: 0; }
-        .header-nav { display: flex; gap: 30px; }
-        .header-nav a { color: var(--text); text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .header-nav a:hover { color: var(--primary); }
-        .header-actions { display: flex; gap: 10px; }
-        .header-actions .btn-primary { background: var(--primary); color: #ffffff; border: 1px solid transparent; }
-        .header-actions .btn-primary:hover { background: var(--primary-dark, var(--primary)); color: #ffffff; opacity: 1; }
-        .header-right { display: flex; align-items: center; gap: 12px; }
-        .mobile-menu-trigger { display: none; width: 56px; height: 40px; border-radius: 10px; border: 1px solid var(--border); background: var(--background); color: var(--text); font-size: 0.95rem; cursor: pointer; }
-        .mobile-menu { display: none; }
-        .btn-ghost { background: var(--background); border: 1px solid var(--border); color: var(--text); }
-        .btn-ghost:hover { background: var(--surface-hover); }
-        .hero { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; padding: 140px 20px 80px; gap: 50px; }
-        .hero-content { flex: 1; }
-        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; color: var(--text); line-height: 1.2; }
-        .hero p { font-size: 1.25rem; margin-bottom: 30px; color: var(--text-secondary); line-height: 1.6; }
-        .hero-buttons { display: flex; gap: 15px; }
-        .browse-btn:hover { background: var(--primary-dark); color: #ffffff; opacity: 1; }
-        .btn-lg { padding: 15px 30px; font-size: 1.1rem; }
-        .hero-visual { position: relative; width: 400px; height: 300px; }
-        .floating-card {
-          position: absolute; width: 100px; height: 100px; background: var(--surface); border-radius: var(--radius-lg);
-          display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700;
-          box-shadow: var(--shadow-lg); animation: float 3s ease-in-out infinite;
+        .landing-page {
+          min-height: 100vh;
+          background:
+            radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 28%),
+            radial-gradient(circle at 85% 12%, rgba(217, 119, 6, 0.12), transparent 24%),
+            var(--background);
         }
-        .card-1 { top: 20px; left: 20px; animation-delay: 0s; }
-        .card-2 { top: 80px; right: 20px; animation-delay: 1s; }
-        .card-3 { bottom: 20px; left: 100px; animation-delay: 2s; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        .stats-section { background: var(--primary); padding: 40px 20px; }
-        .stats-container { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-around; align-items: center; }
-        .stat-item { text-align: center; }
-        .stat-number { display: block; font-size: 2.5rem; font-weight: 700; color: white; }
-        .stat-label { color: rgba(255, 255, 255, 0.9); font-size: 1rem; }
-        .stat-divider { width: 1px; height: 50px; background: rgba(255, 255, 255, 0.3); }
-        .features { background: var(--surface); padding: 80px 20px; }
-        .features h2 { text-align: center; font-size: 2.5rem; margin-bottom: 50px; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        .feature-card { text-align: center; padding: 30px; background: var(--background); border-radius: var(--radius-lg); transition: transform 0.3s; }
-        .feature-card:hover { transform: translateY(-5px); }
-        .feature-icon {
-          font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; min-width: 84px; height: 38px;
-          padding: 0 14px; border-radius: 999px; background: var(--surface); margin-bottom: 20px; font-weight: 700; text-transform: uppercase;
+        .landing-shell {
+          width: min(var(--page-width), calc(100% - 32px));
+          margin: 0 auto;
         }
-        .feature-card h3 { margin-bottom: 10px; }
-        .feature-card p { color: var(--text-secondary); }
-        .featured-quizzes, .leaderboard-preview { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; gap: 12px; }
-        .section-header h2 { font-size: 2rem; }
-        .view-all { color: var(--primary); text-decoration: none; font-weight: 500; }
-        .quizzes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .quiz-card { background: var(--surface); padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); transition: transform 0.3s, box-shadow 0.3s; }
-        .quiz-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-        .quiz-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .badge-easy { background: #4CAF50; color: white; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; }
-        .badge-medium { background: #FF9800; color: white; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; }
-        .badge-hard { background: #f44336; color: white; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; }
-        .quiz-time { color: var(--text-secondary); font-size: 0.9rem; }
-        .quiz-card h3 { margin-bottom: 10px; }
-        .quiz-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px; }
-        .quiz-meta { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px; }
-        .quiz-category { background: var(--background); padding: 4px 12px; border-radius: var(--radius-full); }
-        .leaderboard-preview { background: var(--surface); }
-        .leaderboard-table { background: var(--background); border-radius: var(--radius-lg); overflow: hidden; }
-        .rank { font-weight: 600; font-size: 1.1rem; }
-        .rank-1 { color: #FFD700; }
-        .rank-2 { color: #C0C0C0; }
-        .rank-3 { color: #CD7F32; }
-        .user-cell { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .user-avatar span { color: white; font-weight: 600; }
-        .user-name { font-weight: 500; }
-        .score { font-weight: 600; color: var(--primary); }
-        .accuracy { color: var(--text-secondary); }
-        tr.top-1, tr.top-2, tr.top-3 { background: rgba(255, 215, 0, 0.05); }
-        .cta { text-align: center; padding: 80px 20px; background: var(--surface); }
-        .cta h2 { font-size: 2.5rem; margin-bottom: 15px; }
-        .cta p { font-size: 1.25rem; margin-bottom: 30px; color: var(--text-secondary); }
-        .cta-buttons { display: flex; gap: 15px; justify-content: center; }
-        .landing-footer { background: var(--background); padding: 60px 20px 20px; border-top: 1px solid var(--border); }
-        .footer-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; gap: 40px; }
-        .footer-brand h3 { color: var(--primary); margin-bottom: 5px; }
-        .footer-brand p { color: var(--text-secondary); }
-        .footer-links { display: flex; gap: 60px; }
-        .footer-column h4 { margin-bottom: 15px; }
-        .footer-column a { display: block; color: var(--text-secondary); text-decoration: none; margin-bottom: 10px; transition: color 0.2s; }
-        .footer-column a:hover { color: var(--primary); }
-        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; }
-        .footer-bottom p { color: var(--text-secondary); }
-        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .landing-header {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          backdrop-filter: blur(12px);
+          background: rgba(251, 248, 242, 0.88);
+          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .header-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          min-height: 82px;
+        }
+        .logo-block {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .logo-mark {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+          color: #fff;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          box-shadow: 0 14px 24px rgba(15, 118, 110, 0.22);
+        }
+        .logo-block h1,
+        .footer-brand h3 {
+          margin: 0;
+          color: var(--text);
+          font-size: 1.3rem;
+        }
+        .logo-block p,
+        .footer-brand p {
+          margin: 0;
+          font-size: 0.92rem;
+        }
+        .header-nav,
+        .header-actions,
+        .header-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .header-nav {
+          gap: 24px;
+        }
+        .header-nav a {
+          color: var(--text);
+          font-weight: 600;
+        }
+        .mobile-menu-trigger {
+          display: none;
+          min-width: 72px;
+          height: 42px;
+          border-radius: var(--radius-md);
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text);
+          cursor: pointer;
+        }
+        .mobile-menu {
+          display: none;
+          padding: 12px 0 18px;
+          border-top: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .mobile-nav-links,
+        .mobile-menu-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .mobile-nav-links {
+          margin-bottom: 12px;
+        }
+        .mobile-nav-links a {
+          padding: 12px 14px;
+          border-radius: var(--radius-md);
+          background: var(--surface);
+          color: var(--text);
+          border: 1px solid rgba(15, 23, 42, 0.05);
+        }
+        .hero-section {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 36px;
+          padding: 56px 0 28px;
+          align-items: center;
+        }
+        .hero-copy,
+        .hero-panel,
+        .showcase-panel,
+        .cta-section {
+          background: rgba(255, 255, 255, 0.72);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
+          backdrop-filter: blur(10px);
+        }
+        .hero-copy {
+          padding: 42px;
+          border-radius: 32px;
+        }
+        .hero-kicker,
+        .section-kicker {
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 14px;
+          border-radius: 999px;
+          background: var(--primary-soft);
+          color: var(--primary-dark);
+          font-size: 0.78rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 18px;
+        }
+        .hero-copy h2 {
+          font-size: clamp(2.4rem, 5vw, 4.4rem);
+          line-height: 1.06;
+          margin-bottom: 18px;
+          max-width: 11ch;
+        }
+        .hero-copy p {
+          font-size: 1.05rem;
+          max-width: 60ch;
+          margin-bottom: 22px;
+        }
+        .hero-highlights,
+        .hero-buttons,
+        .landing-quiz-meta,
+        .cta-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .hero-highlight,
+        .meta-pill {
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: var(--surface);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          color: var(--text);
+          font-size: 0.88rem;
+          font-weight: 600;
+        }
+        .btn-lg {
+          padding: 14px 24px;
+          font-size: 1rem;
+        }
+        .hero-panel {
+          padding: 24px;
+          border-radius: 28px;
+          display: grid;
+          gap: 18px;
+        }
+        .hero-card,
+        .feature-card,
+        .landing-quiz-card,
+        .leaderboard-row,
+        .metric-item {
+          background: var(--surface);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+        }
+        .hero-card {
+          border-radius: 22px;
+          padding: 22px;
+        }
+        .hero-card-primary {
+          background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.04));
+        }
+        .hero-card-accent {
+          background: linear-gradient(135deg, rgba(217, 119, 6, 0.12), rgba(217, 119, 6, 0.04));
+        }
+        .hero-card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 14px;
+          color: var(--text-secondary);
+          font-size: 0.92rem;
+        }
+        .hero-card-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+        .stat-card-mini strong {
+          display: block;
+          font-size: 1.7rem;
+          margin: 6px 0;
+        }
+        .mini-label {
+          color: var(--text-secondary);
+          font-size: 0.82rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+        .warm {
+          background: rgba(217, 119, 6, 0.14);
+          color: #b45309;
+        }
+        .metric-strip {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 18px;
+          margin: 8px auto 44px;
+        }
+        .metric-item {
+          border-radius: 22px;
+          padding: 24px;
+          text-align: center;
+        }
+        .metric-value {
+          display: block;
+          font-size: 2rem;
+          font-weight: 800;
+          color: var(--text);
+          margin-bottom: 6px;
+        }
+        .metric-label {
+          color: var(--text-secondary);
+        }
+        .feature-section,
+        .showcase-grid {
+          margin-bottom: 44px;
+        }
+        .section-heading {
+          display: flex;
+          align-items: end;
+          justify-content: space-between;
+          gap: 24px;
+          margin-bottom: 22px;
+        }
+        .section-heading h2 {
+          margin: 0;
+          font-size: clamp(1.8rem, 4vw, 2.8rem);
+        }
+        .section-heading.compact h2 {
+          font-size: 1.6rem;
+        }
+        .section-heading p {
+          max-width: 46ch;
+        }
+        .feature-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 18px;
+        }
+        .feature-card {
+          border-radius: 24px;
+          padding: 24px;
+        }
+        .feature-card h3 {
+          margin: 16px 0 10px;
+          font-size: 1.15rem;
+        }
+        .showcase-grid {
+          display: grid;
+          grid-template-columns: 1.2fr 0.8fr;
+          gap: 22px;
+        }
+        .showcase-panel {
+          border-radius: 28px;
+          padding: 28px;
+        }
+        .view-all {
+          font-weight: 700;
+        }
+        .landing-quizzes-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 18px;
+        }
+        .landing-quiz-card {
+          border-radius: 24px;
+          padding: 22px;
+        }
+        .landing-quiz-topline {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 14px;
+        }
+        .landing-quiz-card h3 {
+          margin-bottom: 10px;
+          font-size: 1.15rem;
+        }
+        .landing-quiz-card p {
+          min-height: 72px;
+          margin-bottom: 16px;
+        }
+        .landing-quiz-meta {
+          margin-bottom: 16px;
+          color: var(--text-secondary);
+          font-size: 0.9rem;
+        }
+        .leaderboard-panel {
+          display: flex;
+          flex-direction: column;
+        }
+        .leaderboard-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .leaderboard-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          border-radius: 18px;
+          padding: 16px;
+        }
+        .leaderboard-user {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .leader-rank {
+          width: 42px;
+          height: 42px;
+          border-radius: 14px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          background: var(--surface-muted);
+          color: var(--text);
+        }
+        .leader-rank-1 {
+          background: rgba(217, 119, 6, 0.16);
+          color: #b45309;
+        }
+        .leader-rank-2 {
+          background: rgba(15, 118, 110, 0.16);
+          color: var(--primary-dark);
+        }
+        .leader-rank-3 {
+          background: rgba(59, 130, 246, 0.16);
+          color: #1d4ed8;
+        }
+        .user-avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          overflow: hidden;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+          color: #fff;
+          font-weight: 800;
+        }
+        .user-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .leader-accuracy {
+          font-weight: 800;
+          color: var(--primary-dark);
+        }
+        .compact-state {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .cta-section {
+          border-radius: 30px;
+          padding: 32px;
+          margin-bottom: 46px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+        }
+        .landing-footer {
+          border-top: 1px solid rgba(15, 23, 42, 0.08);
+          background: rgba(255, 255, 255, 0.72);
+          backdrop-filter: blur(10px);
+        }
+        .footer-grid {
+          display: grid;
+          grid-template-columns: 1.2fr 0.4fr 0.4fr;
+          gap: 24px;
+          padding: 30px 0 22px;
+        }
+        .footer-column {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .footer-column h4 {
+          margin-bottom: 4px;
+        }
+        .footer-bottom {
+          padding: 16px 0 28px;
+          border-top: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .footer-bottom p {
+          margin: 0;
+          text-align: center;
+        }
+        @media (max-width: 1100px) {
+          .hero-section,
+          .showcase-grid,
+          .feature-grid,
+          .footer-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          .feature-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .footer-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+        @media (max-width: 900px) {
+          .header-nav,
+          .header-actions {
+            display: none;
+          }
+          .mobile-menu-trigger,
+          .mobile-menu {
+            display: block;
+          }
+          .hero-section,
+          .showcase-grid,
+          .metric-strip,
+          .cta-section,
+          .footer-grid {
+            grid-template-columns: 1fr;
+          }
+          .cta-section {
+            align-items: flex-start;
+          }
+        }
         @media (max-width: 768px) {
-          .hero { flex-direction: column; text-align: center; padding: 120px 20px 40px; }
-          .hero h1 { font-size: 2.5rem; }
-          .hero-visual { display: none; }
-          .hero-buttons { flex-direction: column; }
-          .header-nav { display: none; }
-          .header-actions { display: none; }
-          .mobile-menu-trigger { display: inline-flex; align-items: center; justify-content: center; }
-          .mobile-menu { display: block; border-top: 1px solid var(--border); padding: 14px 20px 18px; background: var(--surface); }
-          .mobile-nav-links { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-          .mobile-nav-links a { color: var(--text); text-decoration: none; font-weight: 500; }
-          .mobile-menu-actions { display: flex; flex-direction: column; gap: 10px; }
-          .stats-container { flex-direction: column; gap: 20px; }
-          .stat-divider { width: 50px; height: 1px; }
-          .footer-content { flex-direction: column; }
-          .footer-links { flex-direction: column; gap: 30px; }
-          .cta-buttons { flex-direction: column; }
-          .section-header { flex-direction: column; align-items: flex-start; }
-          .quizzes-grid { grid-template-columns: 1fr; }
+          .landing-shell {
+            width: min(var(--page-width), calc(100% - 20px));
+          }
+          .header-content {
+            min-height: 72px;
+          }
+          .hero-section {
+            padding-top: 28px;
+          }
+          .hero-copy,
+          .hero-panel,
+          .showcase-panel,
+          .cta-section,
+          .metric-item,
+          .feature-card,
+          .landing-quiz-card,
+          .hero-card {
+            padding: 18px;
+            border-radius: 20px;
+          }
+          .hero-card-grid,
+          .feature-grid {
+            grid-template-columns: 1fr;
+          }
+          .section-heading,
+          .landing-quiz-topline,
+          .leaderboard-row,
+          .leaderboard-user {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .leaderboard-row {
+            align-items: stretch;
+          }
+          .leader-accuracy {
+            align-self: flex-start;
+          }
+          .hero-copy h2 {
+            max-width: none;
+          }
+          .hero-buttons,
+          .cta-actions {
+            flex-direction: column;
+            align-items: stretch;
+          }
         }
-        .btn { padding: 10px 20px; border-radius: var(--radius-md); font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; border: none; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-        .btn-outline:hover { background: var(--primary); color: white; }
-        .btn-block { width: 100%; text-align: center; }
-        .loading { display: flex; justify-content: center; padding: 40px; }
-        .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

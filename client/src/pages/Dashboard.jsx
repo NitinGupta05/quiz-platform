@@ -4,6 +4,13 @@ import { AuthContext } from "../context/AuthContext";
 import { getQuizzes } from "../services/quizService";
 import { getHistory, getProgress } from "../services/userService";
 
+const quickStats = [
+  { key: "taken", label: "Quizzes taken", accent: "Progress" },
+  { key: "accuracy", label: "Overall accuracy", accent: "Score" },
+  { key: "average", label: "Average result", accent: "Avg" },
+  { key: "best", label: "Best score", accent: "Peak" },
+];
+
 function Dashboard() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -38,6 +45,13 @@ function Dashboard() {
     navigate(`/quiz/${quizId}`);
   };
 
+  const statValues = {
+    taken: stats?.totalQuizzesTaken || 0,
+    accuracy: `${stats?.overallAccuracy || 0}%`,
+    average: `${stats?.averageScore || 0}%`,
+    best: `${stats?.bestScore || 0}%`,
+  };
+
   if (loading) {
     return (
       <div className="loading">
@@ -48,204 +62,377 @@ function Dashboard() {
 
   return (
     <div className="dashboard-page">
-      <div className="page-header">
-        <h1>Welcome back, {user?.name}!</h1>
-        <p>Here is your quiz activity overview.</p>
-      </div>
+      <section className="dashboard-hero">
+        <div>
+          <span className="dashboard-kicker">Student dashboard</span>
+          <h1>Welcome back, {user?.name || "Learner"}</h1>
+          <p>
+            Pick up where you left off, review your recent attempts, and jump back into the next quiz.
+          </p>
+        </div>
+        <div className="dashboard-hero-actions">
+          <Link to="/progress" className="btn btn-outline">View progress</Link>
+          <Link to="/quizzes" className="btn btn-primary">Browse quizzes</Link>
+        </div>
+      </section>
 
-      <div className="stats-grid">
-        {[
-          { label: "Taken", value: stats?.totalQuizzesTaken || 0, hint: "Quizzes completed" },
-          { label: "Accuracy", value: `${stats?.overallAccuracy || 0}%`, hint: "Overall performance" },
-          { label: "Average", value: `${stats?.averageScore || 0}%`, hint: "Average score" },
-          { label: "Best", value: `${stats?.bestScore || 0}%`, hint: "Best score" },
-        ].map((item) => (
-          <div key={item.label} className="stat-card">
-            <span className="stat-icon">{item.label}</span>
-            <div className="stat-info">
-              <h3>{item.value}</h3>
-              <p>{item.hint}</p>
+      <section className="stats-grid">
+        {quickStats.map((item) => (
+          <article key={item.key} className="stat-card">
+            <span className="icon-chip">{item.accent}</span>
+            <strong>{statValues[item.key]}</strong>
+            <h3>{item.label}</h3>
+          </article>
+        ))}
+      </section>
+
+      <section className="dashboard-grid">
+        <div className="panel card recent-panel">
+          <div className="panel-header">
+            <div>
+              <span className="panel-kicker">Recent attempts</span>
+              <h2>Latest activity</h2>
+            </div>
+            <Link to="/progress" className="view-all">Full history</Link>
+          </div>
+
+          {recentAttempts.length > 0 ? (
+            <div className="attempts-list">
+              {recentAttempts.map((attempt) => (
+                <article key={attempt._id} className="attempt-item">
+                  <div>
+                    <h3>{attempt.quiz?.title || "Quiz"}</h3>
+                    <p>{new Date(attempt.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="attempt-summary">
+                    <span className={`attempt-score ${attempt.accuracy >= 60 ? "good" : "bad"}`}>
+                      {attempt.accuracy}%
+                    </span>
+                    <span className="attempt-label">Accuracy</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <h3>No attempts yet</h3>
+              <p>Your recent quiz submissions will appear here once you complete a quiz.</p>
+              <Link to="/quizzes" className="btn btn-primary">Take a quiz</Link>
+            </div>
+          )}
+        </div>
+
+        <aside className="panel card dashboard-aside">
+          <div className="panel-header compact-header">
+            <div>
+              <span className="panel-kicker">Snapshot</span>
+              <h2>At a glance</h2>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          <h3>Recent Attempts</h3>
-          <Link to="/progress" className="view-all">View All</Link>
-        </div>
-        {recentAttempts.length > 0 ? (
-          <div className="attempts-list">
-            {recentAttempts.map((attempt) => (
-              <div key={attempt._id} className="attempt-item">
-                <div className="attempt-info">
-                  <h4>{attempt.quiz?.title || "Quiz"}</h4>
-                  <p>{new Date(attempt.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div className="attempt-score">
-                  <span className={`score ${attempt.accuracy >= 60 ? "good" : "bad"}`}>
-                    {attempt.accuracy}%
-                  </span>
-                </div>
-              </div>
-            ))}
+          <div className="snapshot-list">
+            <div className="snapshot-item">
+              <span>Questions answered</span>
+              <strong>{stats?.totalQuestionsAnswered || 0}</strong>
+            </div>
+            <div className="snapshot-item">
+              <span>Correct answers</span>
+              <strong>{stats?.totalCorrect || 0}</strong>
+            </div>
+            <div className="snapshot-item">
+              <span>Categories attempted</span>
+              <strong>{stats?.categoryPerformance?.length || 0}</strong>
+            </div>
           </div>
-        ) : (
-          <div className="empty-state">
-            <p>No quiz attempts yet.</p>
-            <Link to="/quizzes" className="btn btn-primary">Take a Quiz</Link>
+          <div className="dashboard-note">
+            <span className="icon-chip">Focus</span>
+            <p>
+              Your strongest improvement comes from retaking quizzes where your accuracy is still below 70%.
+            </p>
           </div>
-        )}
-      </div>
+        </aside>
+      </section>
 
-      <div className="section">
-        <div className="section-header">
-          <h3>Available Quizzes</h3>
-          <Link to="/quizzes" className="view-all">View All</Link>
+      <section className="card quiz-panel">
+        <div className="panel-header">
+          <div>
+            <span className="panel-kicker">Continue learning</span>
+            <h2>Available quizzes</h2>
+          </div>
+          <Link to="/quizzes" className="view-all">See all</Link>
         </div>
+
         <div className="quizzes-grid">
           {recentQuizzes.map((quiz) => (
-            <div key={quiz._id} className="quiz-card">
+            <article key={quiz._id} className="quiz-card">
               <div className="quiz-card-header">
                 <span className={`badge badge-${quiz.difficulty}`}>{quiz.difficulty}</span>
-                <span className="quiz-time">{quiz.timeLimit}s</span>
+                <span className="meta-pill">{quiz.timeLimit}s</span>
               </div>
-              <h4>{quiz.title}</h4>
-              <p>{quiz.description || "No description"}</p>
-              <div className="quiz-meta">
+              <h3>{quiz.title}</h3>
+              <p>{quiz.description || "Open this quiz to start a timed assessment and track your result."}</p>
+              <div className="quiz-meta-row">
                 <span>{quiz.category}</span>
                 <span>{quiz.totalAttempts || 0} attempts</span>
               </div>
               <button className="btn btn-primary btn-block" onClick={() => handleStartQuiz(quiz._id)}>
-                Start Quiz
+                Start quiz
               </button>
-            </div>
+            </article>
           ))}
         </div>
-      </div>
+      </section>
 
       <style>{`
-        .dashboard-page { max-width: 1200px; margin: 0 auto; }
-        .page-header { margin-bottom: 30px; }
-        .page-header h1 { font-size: 2rem; margin-bottom: 5px; }
-        .page-header p { color: var(--text-secondary); }
-        .stats-grid {
+        .dashboard-page {
+          max-width: var(--page-width);
+          margin: 0 auto;
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 20px;
-          margin-bottom: 30px;
+          gap: 24px;
         }
-        .stat-card {
-          background: var(--surface);
-          padding: 25px;
-          border-radius: var(--radius-lg);
+        .dashboard-hero {
           display: flex;
-          align-items: center;
-          gap: 15px;
-          box-shadow: var(--shadow-sm);
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
+          padding: 30px;
+          border-radius: 28px;
+          background:
+            linear-gradient(135deg, rgba(15, 118, 110, 0.14), rgba(15, 118, 110, 0.04)),
+            var(--surface);
+          border: 1px solid rgba(15, 23, 42, 0.05);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
         }
-        .stat-icon {
+        .dashboard-kicker,
+        .panel-kicker {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          min-width: 62px;
-          height: 36px;
-          padding: 0 12px;
+          padding: 7px 12px;
           border-radius: 999px;
-          background: var(--background);
-          font-size: 0.82rem;
-          font-weight: 700;
+          background: var(--primary-soft);
+          color: var(--primary-dark);
+          font-size: 0.78rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
+          margin-bottom: 14px;
         }
-        .stat-info h3 { font-size: 1.75rem; margin-bottom: 2px; }
-        .stat-info p { color: var(--text-secondary); font-size: 0.9rem; }
-        .card {
-          background: var(--surface);
-          padding: 25px;
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-sm);
-          margin-bottom: 30px;
+        .dashboard-hero h1 {
+          font-size: clamp(2rem, 4vw, 3rem);
+          margin-bottom: 8px;
         }
-        .card-header {
+        .dashboard-hero p {
+          max-width: 60ch;
+          font-size: 1rem;
+        }
+        .dashboard-hero-actions {
           display: flex;
-          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 18px;
+        }
+        .stat-card {
+          padding: 24px;
+          border-radius: 22px;
+          background: var(--surface);
+          border: 1px solid rgba(15, 23, 42, 0.05);
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+        .stat-card strong {
+          display: block;
+          margin: 16px 0 8px;
+          font-size: 2rem;
+          color: var(--text);
+        }
+        .stat-card h3 {
+          font-size: 1rem;
+          color: var(--text-secondary);
+        }
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: 1.1fr 0.65fr;
+          gap: 20px;
+        }
+        .panel {
+          border-radius: 26px;
+        }
+        .panel-header {
+          display: flex;
           align-items: center;
+          justify-content: space-between;
+          gap: 16px;
           margin-bottom: 20px;
         }
-        .view-all { font-size: 0.9rem; font-weight: 500; }
-        .attempts-list { display: flex; flex-direction: column; gap: 12px; }
+        .compact-header {
+          margin-bottom: 18px;
+        }
+        .panel-header h2 {
+          font-size: 1.5rem;
+          margin: 0;
+        }
+        .view-all {
+          font-weight: 700;
+        }
+        .attempts-list,
+        .snapshot-list {
+          display: grid;
+          gap: 14px;
+        }
+        .attempt-item,
+        .snapshot-item,
+        .dashboard-note,
+        .quiz-card {
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          background: var(--background-elevated);
+        }
         .attempt-item {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 15px;
-          background: var(--background);
-          border-radius: var(--radius-md);
+          justify-content: space-between;
+          gap: 16px;
+          border-radius: 18px;
+          padding: 16px 18px;
         }
-        .attempt-info h4 { font-size: 1rem; margin-bottom: 3px; }
-        .attempt-info p { font-size: 0.85rem; color: var(--text-secondary); }
-        .score { font-weight: 600; font-size: 1.1rem; }
-        .score.good { color: var(--success); }
-        .score.bad { color: var(--danger); }
-        .section { margin-bottom: 30px; }
-        .section-header {
+        .attempt-item h3 {
+          margin-bottom: 4px;
+          font-size: 1.05rem;
+        }
+        .attempt-summary {
+          text-align: right;
+        }
+        .attempt-score {
+          display: block;
+          font-size: 1.35rem;
+          font-weight: 800;
+        }
+        .attempt-score.good {
+          color: var(--success);
+        }
+        .attempt-score.bad {
+          color: var(--danger);
+        }
+        .attempt-label {
+          font-size: 0.82rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+        .dashboard-aside {
+          display: grid;
+          gap: 16px;
+          align-content: start;
+        }
+        .snapshot-item {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 16px;
+          border-radius: 16px;
+        }
+        .snapshot-item strong {
+          font-size: 1.15rem;
+        }
+        .dashboard-note {
+          border-radius: 18px;
+          padding: 18px;
+          display: grid;
+          gap: 12px;
+        }
+        .dashboard-note p {
+          margin: 0;
+        }
+        .quiz-panel {
+          border-radius: 26px;
         }
         .quizzes-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 18px;
         }
         .quiz-card {
-          background: var(--surface);
+          border-radius: 22px;
           padding: 20px;
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-sm);
+        }
+        .quiz-card-header,
+        .quiz-meta-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
         }
         .quiz-card-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 12px;
+          margin-bottom: 14px;
         }
-        .badge-easy { background: #4CAF50; color: white; }
-        .badge-medium { background: #FF9800; color: white; }
-        .badge-hard { background: #f44336; color: white; }
-        .quiz-time { color: var(--text-secondary); font-size: 0.9rem; }
-        .quiz-card h4 { margin-bottom: 8px; }
-        .quiz-card p { font-size: 0.9rem; margin-bottom: 15px; }
-        .quiz-meta {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.85rem;
+        .meta-pill {
+          display: inline-flex;
+          align-items: center;
+          padding: 7px 11px;
+          border-radius: 999px;
+          background: var(--surface);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          font-size: 0.82rem;
+          font-weight: 700;
           color: var(--text-secondary);
-          margin-bottom: 15px;
         }
-        .quiz-card .btn.btn-primary:hover {
-          background: var(--primary-dark);
-          color: #ffffff;
-          opacity: 1;
+        .quiz-card h3 {
+          margin-bottom: 10px;
+          font-size: 1.1rem;
         }
-        @media (max-width: 1024px) {
-          .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-          .quizzes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .quiz-card p {
+          min-height: 66px;
+          margin-bottom: 14px;
+        }
+        .quiz-meta-row {
+          margin-bottom: 16px;
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+        }
+        @media (max-width: 1100px) {
+          .stats-grid,
+          .quizzes-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .dashboard-grid {
+            grid-template-columns: 1fr;
+          }
         }
         @media (max-width: 768px) {
-          .dashboard-page { max-width: 100%; }
-          .page-header { margin-bottom: 20px; }
-          .page-header h1 { font-size: 1.5rem; line-height: 1.3; }
-          .stats-grid,
-          .quizzes-grid { grid-template-columns: 1fr; gap: 14px; }
+          .dashboard-hero,
+          .panel,
+          .quiz-panel,
           .stat-card,
-          .card,
-          .quiz-card { padding: 16px; }
-          .card-header,
-          .section-header,
-          .attempt-item { flex-wrap: wrap; gap: 8px; }
-          .quiz-meta { flex-wrap: wrap; gap: 8px; }
+          .quiz-card {
+            padding: 18px;
+            border-radius: 20px;
+          }
+          .dashboard-hero,
+          .panel-header,
+          .attempt-item,
+          .quiz-card-header,
+          .quiz-meta-row {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .dashboard-hero-actions,
+          .stats-grid,
+          .quizzes-grid {
+            grid-template-columns: 1fr;
+            width: 100%;
+          }
+          .dashboard-hero-actions {
+            display: flex;
+            align-items: stretch;
+          }
+          .dashboard-hero-actions .btn {
+            width: 100%;
+          }
+          .attempt-summary {
+            text-align: left;
+          }
         }
       `}</style>
     </div>
