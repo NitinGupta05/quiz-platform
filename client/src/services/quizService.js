@@ -11,3 +11,11 @@ export function getQuizById(id) {
 export function getQuizCategories() {
   return apiRequest("/quizzes/categories");
 }
+
+export function getLeaderboard(quizId = "", limit = 10) {
+  const path = quizId
+    ? `/quizzes/leaderboard/${quizId}?limit=${limit}`
+    : `/quizzes/leaderboard?limit=${limit}`;
+
+  return apiRequest(path);
+}

@@ -2,12 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeContext } from "../context/ThemeContext";
-import { ModalContext } from "../context/ModalContext";
 
 function Header() {
   const { user, logout } = useContext(AuthContext);
   const { isDark, toggleTheme } = useContext(ThemeContext);
-  const { openLogin, openRegister } = useContext(ModalContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -15,11 +13,14 @@ function Header() {
     navigate("/");
   };
 
+  const handleLogin = () => navigate("/login");
+  const handleRegister = () => navigate("/register");
+
   return (
     <header className="header">
       <div className="header-content">
         <Link to="/" className="logo">
-          <span className="logo-icon">📝</span>
+          <span className="logo-icon">Quiz</span>
           <span className="logo-text">QuizPro</span>
         </Link>
 
@@ -31,15 +32,13 @@ function Header() {
 
         <div className="header-actions">
           <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
-            {isDark ? "☀️" : "🌙"}
+            {isDark ? "Light" : "Dark"}
           </button>
 
           {user ? (
             <div className="user-menu">
-              <Link to="/profile" className="user-btn">
-                <div className="user-avatar">
-                  {user.name?.charAt(0).toUpperCase()}
-                </div>
+              <Link to={user.role === "admin" ? "/admin/profile" : "/profile"} className="user-btn">
+                <div className="user-avatar">{user.name?.charAt(0).toUpperCase()}</div>
                 <span className="user-name">{user.name}</span>
               </Link>
               <button className="btn btn-sm btn-outline" onClick={handleLogout}>
@@ -48,12 +47,8 @@ function Header() {
             </div>
           ) : (
             <div className="auth-buttons">
-              <button className="btn btn-sm btn-outline" onClick={openLogin}>
-                Login
-              </button>
-              <button className="btn btn-sm btn-primary" onClick={openRegister}>
-                Register
-              </button>
+              <button className="btn btn-sm btn-outline" onClick={handleLogin}>Login</button>
+              <button className="btn btn-sm btn-primary" onClick={handleRegister}>Register</button>
             </div>
           )}
         </div>
@@ -85,7 +80,17 @@ function Header() {
         }
 
         .logo-icon {
-          font-size: 1.5rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 54px;
+          height: 32px;
+          border-radius: 999px;
+          background: var(--background);
+          color: var(--text-secondary);
+          font-size: 0.78rem;
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
         .logo-text {
@@ -117,10 +122,10 @@ function Header() {
 
         .theme-toggle {
           background: none;
-          border: none;
-          font-size: 1.25rem;
+          border: 1px solid var(--border);
+          font-size: 0.85rem;
           cursor: pointer;
-          padding: 8px;
+          padding: 8px 12px;
           border-radius: var(--radius-md);
           transition: var(--transition);
         }
@@ -179,4 +184,3 @@ function Header() {
 }
 
 export default Header;
-
